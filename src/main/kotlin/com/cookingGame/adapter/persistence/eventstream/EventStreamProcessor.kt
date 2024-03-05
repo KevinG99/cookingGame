@@ -147,8 +147,6 @@ internal fun LockEntity.asLock() = Lock(
 
 /**
  * Event Stream enables registration of views/subscribers and event streaming/pooling from the database.
- *
- *  @author Иван Дугалић / Ivan Dugalic / @idugalic
  */
 internal class EventStreamProcessor(private val connectionFactory: ConnectionFactory) {
     companion object {

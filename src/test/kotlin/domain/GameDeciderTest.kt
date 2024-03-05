@@ -33,4 +33,16 @@ class GameDeciderTest {
             } thenEvents listOf(gameGeneratedEvent) // POST CONDITIONS
         }
     }
+
+    @Test
+    fun testGenerateGameAlreadyExistsError(): Unit = runBlocking{
+        val gameGeneratedEvent = GameGeneratedEvent(gameId, gameName, ingredientItems)
+        val generateGameCommand = GenerateGameCommand(gameId, gameName, ingredientItems)
+        val gameNotCreatedEvent = GameNotCreatedEvent(gameId, gameName, Reason("Game already exists"), true)
+        with(gameDecider){
+            givenEvents(listOf(gameGeneratedEvent)){ // PRE CONDITIONS
+                whenCommand(generateGameCommand) // ACTION
+            } thenEvents listOf(gameNotCreatedEvent) // POST CONDITIONS
+        }
+    }
 }
