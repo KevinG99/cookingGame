@@ -92,6 +92,11 @@ sealed class GameCommand : Command() {
 }
 
 @Serializable
+sealed class IngredientCommand : Command() {
+    abstract val identifier: IngredientId
+}
+
+@Serializable
 data class GenerateGameCommand(
     override val identifier: GameId,
     val name: GameName,
@@ -117,6 +122,11 @@ sealed class Event {
 @Serializable
 sealed class GameEvent : Event() {
     abstract val identifier: GameId
+}
+
+@Serializable
+sealed class IngredientEvent : Event() {
+    abstract val identifier: IngredientId
 }
 
 @Serializable
