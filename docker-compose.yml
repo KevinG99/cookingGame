@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  #### Database
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+    hostname: postgres
+    networks:
+      - cookingModel-net
+  #### Applications
+  fmodel-spring-demo:
+    image: cooking-game-ktor-demo:0.0.1
+    depends_on:
+      - postgres
+    environment:
+      - R2DBC_HOST=postgres
+      - R2DBC_USERNAME=postgres
+      - R2DBC_PASSWORD=postgres
+      - R2DBC_DATABASE=postgres
+      - R2DBC_PORT=5432
+    ports:
+      - 8080:8080
+    networks:
+      - cookingModel-net
+networks:
+  cookingModel-net:
+
+
+
