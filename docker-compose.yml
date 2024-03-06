@@ -12,7 +12,7 @@ services:
     networks:
       - cookingModel-net
   #### Applications
-  fmodel-spring-demo:
+  cooking-game-ktor-demo:
     image: cooking-game-ktor-demo:0.0.1
     depends_on:
       - postgres
