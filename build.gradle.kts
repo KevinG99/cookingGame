@@ -9,6 +9,7 @@ val postgres_version: String by project
 val r2dbc_version: String by project
 val prometeus_version: String by project
 val kotlinx_collections_immutable_version: String by project
+val mockk_version: String by project
 
 plugins {
     kotlin("jvm") version "1.9.22"
@@ -58,6 +59,12 @@ dependencies {
     implementation("io.r2dbc:r2dbc-postgresql:0.8.13.RELEASE")
     implementation("io.ktor:ktor-server-metrics-micrometer-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-cio-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     testImplementation(kotlin("test"))
+    testImplementation("io.ktor:ktor-client-mock:$ktor_version")
+    testImplementation("io.mockk:mockk:${mockk_version}")
 }

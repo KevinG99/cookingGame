@@ -15,6 +15,9 @@ private const val R2DBC_INITIAL_POOL_SIZE: Int = 10
 private const val R2DBC_MAX_POOL_SIZE: Int = 10
 private const val R2DBC_MAX_IDLE_TIME: Long = 30_000
 
+private const val OLLAMA_API : String = "127.0.0.1"
+private const val OLLAMA_API_PORT: Int = 11434
+
 
 /**
  * Environment variables
@@ -47,5 +50,13 @@ data class Env(
     data class Http(
         val host: String = getenv("HOST") ?: "0.0.0.0",
         val port: Int = getenv("SERVER_PORT")?.toIntOrNull() ?: PORT,
+    )
+
+    /**
+     * Ollama configuration
+     */
+    data class Ollama(
+        val host : String = getenv("OLLAMA_API") ?: OLLAMA_API,
+        val port : Int = getenv("OLLAMA_API_PORT")?.toIntOrNull() ?: OLLAMA_API_PORT
     )
 }

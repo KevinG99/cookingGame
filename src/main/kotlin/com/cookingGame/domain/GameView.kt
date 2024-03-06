@@ -9,7 +9,8 @@ fun gameView() = GameView(
     initialState = null,
     evolve = { s, e ->
         when (e) {
-            is GameGeneratedEvent -> GameViewState(e.identifier, e.name, e.ingredients)
+            is GamePreparationStartedEvent -> GameViewState(e.identifier, e.name)
+            is GameGeneratedEvent -> s?.copy(name = e.name, ingredients = e.ingredients)
             is GameStartedEvent -> TODO()
             is GameErrorEvent -> s
             null -> s
@@ -21,5 +22,5 @@ fun gameView() = GameView(
 data class GameViewState(
     val id: GameId,
     val name: GameName,
-    val ingredients: ImmutableList<IngredientItem>
+    val ingredients: ImmutableList<IngredientItem>? = null
 )

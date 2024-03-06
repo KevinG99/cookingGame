@@ -96,6 +96,13 @@ sealed class IngredientCommand : Command() {
     abstract val identifier: IngredientId
 }
 
+
+@Serializable
+data class StartGamePreparationCommand(
+    override val identifier: GameId,
+    val name: GameName,
+) : GameCommand()
+
 @Serializable
 data class GenerateGameCommand(
     override val identifier: GameId,
@@ -124,15 +131,13 @@ sealed class GameEvent : Event() {
     abstract val identifier: GameId
 }
 
-@Serializable
-sealed class IngredientEvent : Event() {
-    abstract val identifier: IngredientId
-}
 
 @Serializable
-sealed class GameErrorEvent : GameEvent() {
-    abstract val reason: Reason
-}
+data class GamePreparationStartedEvent(
+    override val identifier: GameId,
+    val name: GameName,
+    override val final: Boolean = false
+) : GameEvent()
 
 @Serializable
 data class GameGeneratedEvent(
@@ -142,6 +147,16 @@ data class GameGeneratedEvent(
     val ingredients: ImmutableList<IngredientItem>,
     override val final: Boolean = false
 ) : GameEvent()
+
+@Serializable
+sealed class IngredientEvent : Event() {
+    abstract val identifier: IngredientId
+}
+
+@Serializable
+sealed class GameErrorEvent : GameEvent() {
+    abstract val reason: Reason
+}
 
 
 @Serializable

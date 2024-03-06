@@ -3,8 +3,11 @@ package com.cookingGame
 import arrow.continuations.SuspendApp
 import arrow.continuations.ktor.server
 import arrow.fx.coroutines.resourceScope
-import com.cookingGame.adapter.persistence.*
-import com.cookingGame.plugins.configureSerialization
+import com.cookingGame.adapter.clients.GameClient
+import com.cookingGame.adapter.persistence.AggregateEventRepositoryImpl
+import com.cookingGame.adapter.persistence.GameRepository
+import com.cookingGame.adapter.persistence.IngredientRepository
+import com.cookingGame.adapter.persistence.MaterializedViewStateRepositoryImpl
 import com.cookingGame.adapter.persistence.eventstore.EventStore
 import com.cookingGame.adapter.persistence.eventstream.EventStreamProcessor
 import com.cookingGame.adapter.persistence.extension.pooledConnectionFactory
@@ -13,6 +16,7 @@ import com.cookingGame.application.Aggregate
 import com.cookingGame.application.aggregate
 import com.cookingGame.application.materializedView
 import com.cookingGame.domain.*
+import com.cookingGame.plugins.configureSerialization
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.util.logging.*
@@ -31,6 +35,7 @@ internal val LOGGER = KtorSimpleLogger("com.cookingGame")
 fun main(): Unit = SuspendApp {
     resourceScope {
         val httpEnv = Env.Http()
+        val gameClient = GameClient()
         val connectionFactory: ConnectionFactory = pooledConnectionFactory(Env.R2DBCDataSource())
         // ### Command Side - Event Sourcing ###
         val eventStore = EventStore(connectionFactory).apply { initSchema() }
@@ -38,7 +43,7 @@ fun main(): Unit = SuspendApp {
         val aggregate = aggregate(
             gameDecider(),
             ingredientDecider(),
-            gameSaga(),
+            gameSaga(gameClient),
             ingredientSaga(),
             aggregateEventRepository
         )
