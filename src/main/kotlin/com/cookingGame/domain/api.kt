@@ -2,6 +2,9 @@ package com.cookingGame.domain
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.serializers.InstantIso8601Serializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -76,3 +79,7 @@ value class GameName(val value: String)
 enum class GameStatus {
     CREATED, PREPARED, STARTED, COMPLETED
 }
+
+@Serializable
+@JvmInline
+value class GameStartTime(@Serializable(with = InstantIso8601Serializer::class) val value: Instant = Clock.System.now())

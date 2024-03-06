@@ -21,21 +21,21 @@ fun gameDecider() = GameDecider(
             is PrepareGameCommand ->
                 if (s == null) flowOf(GameDoesNotExistEvent(c.identifier, c.name, Error.GameDoesNotExist.reason, true))
                 else if(GameStatus.CREATED != s.status) flowOf(GameNotInCreatableStateEvent(c.identifier, c.name, Error.GameNotCreated.reason, true))
-                else flowOf(GamePreparedEvent(c.identifier, c.name))
+                else flowOf(GamePreparedEvent(c.identifier, c.name, c.ingredients))
 
             is StartGameCommand ->
                 if (s == null) flowOf(GameDoesNotExistEvent(c.identifier, c.name, Error.GameDoesNotExist.reason, true))
                 else if(GameStatus.PREPARED != s.status) flowOf(GameNotInPreparedStateEvent(c.identifier, c.name, Error.GameNotPrepared.reason, true))
-                else flowOf(GameStartedEvent(c.identifier, c.name))
+                else flowOf(GameStartedEvent(c.identifier, c.name, c.ingredients, c.startTime))
 
             null -> emptyFlow()
         }
     },
     evolve = { s, e ->
         when (e) {
-            is GameCreatedEvent -> Game(e.identifier, e.name, e.status)
-            is GamePreparedEvent -> s?.copy(status = e.status)
-            is GameStartedEvent -> s?.copy(status= e.status)
+            is GameCreatedEvent -> Game(e.identifier, e.name, e.status, emptyList<IngredientItem>().toImmutableList(), null)
+            is GamePreparedEvent -> s?.copy(status = e.status, ingredients = e.ingredients)
+            is GameStartedEvent -> s?.copy(status= e.status, startTime = e.startTime)
             is GameAlreadyExistsEvent -> s
             is GameNotInCreatableStateEvent -> s
             is GameDoesNotExistEvent -> s
@@ -50,6 +50,7 @@ fun gameDecider() = GameDecider(
 data class Game(
     val id: GameId,
     val name: GameName,
-    val status : GameStatus,
-    val ingredients: ImmutableList<IngredientItem> = emptyList<IngredientItem>().toImmutableList()
+    val status: GameStatus,
+    val ingredients: ImmutableList<IngredientItem>,
+    val startTime: GameStartTime?
 )

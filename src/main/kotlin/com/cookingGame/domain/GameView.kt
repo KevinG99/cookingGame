@@ -11,20 +11,28 @@ fun gameView() = GameView(
     initialState = null,
     evolve = { s, e ->
         when (e) {
-            is GameCreatedEvent -> GameViewState(e.identifier, e.name, e.status)
+            is GameCreatedEvent -> GameViewState(
+                e.identifier,
+                e.name,
+                e.status,
+                emptyList<IngredientItem>().toImmutableList(),
+                null
+            )
+
             is GamePreparedEvent -> s?.copy(status = e.status, ingredients = e.ingredients)
-            is GameStartedEvent -> s?.copy(status = e.status)
+            is GameStartedEvent -> s?.copy(status = e.status, startTime = e.startTime)
             is GameErrorEvent -> s
             null -> s
         }
     }
 )
 
-
+@Serializable
 data class GameViewState(
     val id: GameId,
     val name: GameName,
     val status: GameStatus,
     @Serializable(with = ImmutableListSerializer::class)
-    val ingredients: ImmutableList<IngredientItem> = emptyList<IngredientItem>().toImmutableList()
+    val ingredients: ImmutableList<IngredientItem>,
+    val startTime: GameStartTime?
 )

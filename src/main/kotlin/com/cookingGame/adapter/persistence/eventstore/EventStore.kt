@@ -239,46 +239,16 @@ internal class EventStore(private val connectionFactory: ConnectionFactory) {
         private const val DATA =
             """
                 INSERT INTO deciders
-                VALUES ('Restaurant', 'com.fraktalio.domain.RestaurantCreatedEvent');
+                VALUES ('Game', 'com.cookingGame.domain.GameCreatedEvent');
                 
                 INSERT INTO deciders
-                VALUES ('Restaurant', 'com.fraktalio.domain.RestaurantNotCreatedEvent');
+                VALUES ('Game', 'com.cookingGame.domain.GamePreparedEvent');
                 
                 INSERT INTO deciders
-                VALUES ('Restaurant', 'com.fraktalio.domain.RestaurantMenuChangedEvent');
+                VALUES ('Game', 'com.cookingGame.domain.GameStartedEvent');
                 
-                INSERT INTO deciders
-                VALUES ('Restaurant', 'com.fraktalio.domain.RestaurantMenuNotChangedEvent');
-                
-                INSERT INTO deciders
-                VALUES ('Restaurant', 'com.fraktalio.domain.OrderPlacedAtRestaurantEvent');
-                
-                INSERT INTO deciders
-                VALUES ('Restaurant', 'com.fraktalio.domain.OrderNotPlacedAtRestaurantEvent');
-                
-                INSERT INTO deciders
-                VALUES ('Restaurant', 'com.fraktalio.example.domain.OrderRejectedByRestaurantEvent');
-                                
-                INSERT INTO deciders
-                VALUES ('Order', 'com.fraktalio.domain.OrderCreatedEvent');
-                
-                INSERT INTO deciders
-                VALUES ('Order', 'com.fraktalio.domain.OrderPreparedEvent');
-                
-                INSERT INTO deciders
-                VALUES ('Order', 'com.fraktalio.domain.OrderPaidEvent');
-                
-                INSERT INTO deciders
-                VALUES ('Order', 'com.fraktalio.domain.OrderNotPreparedEvent');
-                
-                INSERT INTO deciders
-                VALUES ('Order', 'com.fraktalio.domain.OrderNotPaidEvent');
-                
-                INSERT INTO deciders
-                VALUES ('Order', 'com.fraktalio.domain.OrderRejectedEvent');
-
+               
             """
-
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
