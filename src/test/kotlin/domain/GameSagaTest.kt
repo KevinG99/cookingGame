@@ -25,15 +25,15 @@ class GameSagaTest {
     @Test
     fun testGamePreparationStartedEvent() = runBlocking {
         coEvery { mockGameClient.getIngredients(gameName) } returns flowOf(ingredientItems)
-        val gamePreparationStartedEvent = GamePreparationStartedEvent(
+        val gameCreatedEvent = GameCreatedEvent(
             gameId,
             gameName
         )
-        val startGamePreparationCommand = GenerateGameCommand(gameId, gameName, ingredientItems)
+        val startGamePreparationCommand = PrepareGameCommand(gameId, gameName, ingredientItems)
 
         with(gameSaga) {
             whenActionResult(
-                gamePreparationStartedEvent
+                gameCreatedEvent
             ) expectActions listOf(startGamePreparationCommand)
         }
     }

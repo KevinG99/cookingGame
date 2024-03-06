@@ -25,12 +25,15 @@ fun gameSaga(gameClient: GameClient) = GameSaga(
     react = { e ->
         when (e) {
             null -> emptyFlow() // We ignore the `null` event by returning the empty flow of commands. Only the Saga that can handle `null` event/action-result can be combined (Monoid) with other Sagas.
-            is GamePreparationStartedEvent -> gameClient.getIngredients(e.name).flatMapConcat { ingredientList ->
-                flowOf(GenerateGameCommand(e.identifier, e.name, ingredientList))
+            is GameCreatedEvent -> gameClient.getIngredients(e.name).flatMapConcat { ingredientList ->
+                flowOf(PrepareGameCommand(e.identifier, e.name, ingredientList))
             }
-            is GameGeneratedEvent -> emptyFlow()
-            is GameNotCreatedEvent -> emptyFlow()
+            is GamePreparedEvent -> emptyFlow()
+            is GameAlreadyExistsEvent -> emptyFlow()
             is GameStartedEvent -> emptyFlow()
+            is GameDoesNotExistEvent -> emptyFlow()
+            is GameNotInCreatableStateEvent -> emptyFlow()
+            is GameNotInPreparedStateEvent -> emptyFlow()
         }
     }
 )

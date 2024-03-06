@@ -2,6 +2,7 @@ package com.cookingGame.domain
 
 import com.fraktalio.fmodel.domain.Decider
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 
@@ -13,25 +14,32 @@ fun gameDecider() = GameDecider(
     initialState = null,
     decide = { c: GameCommand?, s: Game? ->
         when (c) {
-            is StartGamePreparationCommand ->
-                if (s == null) flowOf(GamePreparationStartedEvent(c.identifier, c.name))
-                else flowOf(GameNotCreatedEvent(c.identifier, c.name, Reason("Game already exists"), true))
-            is GenerateGameCommand ->
-                if (s == null) flowOf(GameGeneratedEvent(c.identifier, c.name, c.ingredients))
-                else flowOf(GameNotCreatedEvent(c.identifier, c.name, Reason("Game already exists"), true))
+            is CreateGameCommand ->
+                if (s == null) flowOf(GameCreatedEvent(c.identifier, c.name))
+                else flowOf(GameAlreadyExistsEvent(c.identifier, c.name, Error.GameAlreadyExists.reason, true))
+
+            is PrepareGameCommand ->
+                if (s == null) flowOf(GameDoesNotExistEvent(c.identifier, c.name, Error.GameDoesNotExist.reason, true))
+                else if(GameStatus.CREATED != s.status) flowOf(GameNotInCreatableStateEvent(c.identifier, c.name, Error.GameNotCreated.reason, true))
+                else flowOf(GamePreparedEvent(c.identifier, c.name))
+
             is StartGameCommand ->
-                if (s == null) flowOf(GameStartedEvent(c.identifier, c.name, c.ingredients))
-                else flowOf(GameNotCreatedEvent(c.identifier, c.name, Reason("Game already exists"), true))
+                if (s == null) flowOf(GameDoesNotExistEvent(c.identifier, c.name, Error.GameDoesNotExist.reason, true))
+                else if(GameStatus.PREPARED != s.status) flowOf(GameNotInPreparedStateEvent(c.identifier, c.name, Error.GameNotPrepared.reason, true))
+                else flowOf(GameStartedEvent(c.identifier, c.name))
 
             null -> emptyFlow()
         }
     },
     evolve = { s, e ->
         when (e) {
-            is GamePreparationStartedEvent -> Game(e.identifier, e.name)
-            is GameGeneratedEvent -> s?.copy(name = e.name, ingredients = e.ingredients)
-            is GameStartedEvent -> s?.copy(name = e.name, ingredients = e.ingredients)
-            is GameNotCreatedEvent -> s
+            is GameCreatedEvent -> Game(e.identifier, e.name, e.status)
+            is GamePreparedEvent -> s?.copy(status = e.status)
+            is GameStartedEvent -> s?.copy(status= e.status)
+            is GameAlreadyExistsEvent -> s
+            is GameNotInCreatableStateEvent -> s
+            is GameDoesNotExistEvent -> s
+            is GameNotInPreparedStateEvent -> s
             null -> s
         }
 
@@ -42,5 +50,6 @@ fun gameDecider() = GameDecider(
 data class Game(
     val id: GameId,
     val name: GameName,
-    val ingredients: ImmutableList<IngredientItem>? = null
+    val status : GameStatus,
+    val ingredients: ImmutableList<IngredientItem> = emptyList<IngredientItem>().toImmutableList()
 )
