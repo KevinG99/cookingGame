@@ -28,15 +28,17 @@ class GameSagaTest {
         ).toImmutableList()
     )
 
+    private val gameDuration = GameDuration(BigDecimal.valueOf(5))
+    private val ollamaResponse = OllamaResponse(gameDuration, ingredientList)
 
     @Test
     fun testGamePreparationStartedEvent() = runBlocking {
-        coEvery { mockGameClient.getIngredients(gameName) } returns flowOf(ingredientList)
+        coEvery { mockGameClient.getIngredients(gameName) } returns flowOf(ollamaResponse)
         val gameCreatedEvent = GameCreatedEvent(
             gameId,
             gameName
         )
-        val startGamePreparationCommand = PrepareGameCommand(gameId, gameName, ingredientList)
+        val startGamePreparationCommand = PrepareGameCommand(gameId, gameName, ingredientList, gameDuration)
 
         with(gameSaga) {
             whenActionResult(

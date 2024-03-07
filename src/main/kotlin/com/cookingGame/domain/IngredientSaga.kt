@@ -21,8 +21,9 @@ fun ingredientSaga() = IngredientSaga(
         when (e) {
             //TODO evolve the example ;), it does not do much at the moment.
             is GameErrorEvent -> emptyFlow()
-            is GameGeneratedEvent -> emptyFlow()
             is GameStartedEvent -> emptyFlow()
+            is GameCreatedEvent -> emptyFlow()
+            is GamePreparedEvent -> emptyFlow()
             null -> emptyFlow() // We ignore the `null` event by returning the empty flow of commands. Only the Saga that can handle `null` event/action-result can be combined (Monoid) with other Sagas.
         }
     }

@@ -35,6 +35,7 @@ data class GamePreparedEvent(
     override val identifier: GameId,
     val name: GameName,
     val ingredients: IngredientList,
+    val gameDuration: GameDuration,
     override val final: Boolean = false
 ) : GameEvent(){
     val status = GameStatus.PREPARED
@@ -47,6 +48,7 @@ data class GameStartedEvent(
     val name: GameName,
     val ingredients : IngredientList,
     val startTime: GameStartTime,
+    val gameDuration: GameDuration,
     override val final: Boolean = false
 ) : GameEvent(){
     val status = GameStatus.STARTED

@@ -17,9 +17,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.math.BigDecimal
 
+@Serializable
+data class OllamaResponseDto(
+    @Serializable(with = BigDecimalSerializer::class)
+    val gameDuration: BigDecimal,
+    val ingredients: List<IngredientItem>
+)
 
 class GameClient(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -35,15 +42,22 @@ class GameClient(
     private val ollama = Env.Ollama()
     private val ollamaRoute = "http://${ollama.host}:${ollama.port}"
 
-    fun getIngredients(name: GameName): Flow<IngredientList> = flow {
+    fun getIngredients(name: GameName): Flow<OllamaResponse> = flow {
         try {
             val response: HttpResponse = client.get("$ollamaRoute/ingredients?gameName=${name.value}")
             if (response.status == HttpStatusCode.OK) {
-                val ingredients = response.body<List<IngredientItem>>() //TODO: check if this works
-                emit(IngredientList(ingredients.toImmutableList()))
+                val ollamaDto = response.body<OllamaResponseDto>() //TODO: handle mapping correctly
+                emit(
+                    OllamaResponse(
+                        GameDuration(ollamaDto.gameDuration),
+                        IngredientList(ollamaDto.ingredients.toImmutableList())
+                    )
+                )
             } else {
                 LOGGER.error("Received non-OK response: ${response.status}")
                 emit(
+                    OllamaResponse(
+                        GameDuration(BigDecimal.TEN),
                     IngredientList(
                         listOf(
                             IngredientItem(
@@ -65,7 +79,7 @@ class GameClient(
                                 IngredientInputTime(BigDecimal.TEN)
                             )
                         ).toImmutableList()
-                    )
+                    ))
                 )
             }
         } catch (e: Exception) {

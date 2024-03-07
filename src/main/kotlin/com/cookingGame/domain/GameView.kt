@@ -15,7 +15,7 @@ fun gameView() = GameView(
                 e.status,
             )
 
-            is GamePreparedEvent -> s?.copy(status = e.status, ingredients = e.ingredients)
+            is GamePreparedEvent -> s?.copy(status = e.status, ingredients = e.ingredients, gameDuration = e.gameDuration)
             is GameStartedEvent -> s?.copy(status = e.status, startTime = e.startTime)
             is GameErrorEvent -> s
             null -> s
@@ -29,5 +29,6 @@ data class GameViewState(
     val name: GameName,
     val status: GameStatus,
     val ingredients: IngredientList? = null,
-    val startTime: GameStartTime? = null
+    val startTime: GameStartTime? = null,
+    val gameDuration: GameDuration? = null,
 )

@@ -72,6 +72,12 @@ data class IngredientItem(
 value class IngredientList(@Serializable(with = ImmutableListSerializer::class) val value: ImmutableList<IngredientItem> = emptyList<IngredientItem>().toImmutableList())
 
 @Serializable
+data class OllamaResponse(
+    val gameDuration: GameDuration,
+    val ingredientList: IngredientList,
+)
+
+@Serializable
 @JvmInline
 value class GameId(@Serializable(with = UUIDSerializer::class) val value: UUID = UUID.randomUUID())
 
@@ -83,6 +89,10 @@ value class GameName(val value: String)
 enum class GameStatus {
     CREATED, PREPARED, STARTED, COMPLETED
 }
+
+@Serializable
+@JvmInline
+value class GameDuration(@Serializable(with = BigDecimalSerializer::class) val value: BigDecimal)
 
 @Serializable
 @JvmInline
