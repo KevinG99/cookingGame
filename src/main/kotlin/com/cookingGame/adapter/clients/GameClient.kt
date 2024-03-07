@@ -11,7 +11,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -36,35 +35,38 @@ class GameClient(
     private val ollama = Env.Ollama()
     private val ollamaRoute = "http://${ollama.host}:${ollama.port}"
 
-    fun getIngredients(name: GameName): Flow<ImmutableList<IngredientItem>> = flow {
+    fun getIngredients(name: GameName): Flow<IngredientList> = flow {
         try {
             val response: HttpResponse = client.get("$ollamaRoute/ingredients?gameName=${name.value}")
             if (response.status == HttpStatusCode.OK) {
                 val ingredients = response.body<List<IngredientItem>>() //TODO: check if this works
-                emit(ingredients.toImmutableList())
+                emit(IngredientList(ingredients.toImmutableList()))
             } else {
                 LOGGER.error("Received non-OK response: ${response.status}")
                 emit(
-                    listOf(
-                        IngredientItem(
-                            IngredientId(),
-                            IngredientName("Test ingredient 1"),
-                            IngredientQuantity(5),
-                            IngredientInputTime(BigDecimal.TEN)
-                        ),
-                        IngredientItem(
-                            IngredientId(),
-                            IngredientName("Test ingredient 2"),
-                            IngredientQuantity(5),
-                            IngredientInputTime(BigDecimal.valueOf(20))
-                        ),
-                        IngredientItem(
-                            IngredientId(),
-                            IngredientName("Test ingredient 3"),
-                            IngredientQuantity(5),
-                            IngredientInputTime(BigDecimal.TEN)
-                        )
-                    ).toImmutableList())
+                    IngredientList(
+                        listOf(
+                            IngredientItem(
+                                IngredientId(),
+                                IngredientName("Test ingredient 1"),
+                                IngredientQuantity(5),
+                                IngredientInputTime(BigDecimal.TEN)
+                            ),
+                            IngredientItem(
+                                IngredientId(),
+                                IngredientName("Test ingredient 2"),
+                                IngredientQuantity(5),
+                                IngredientInputTime(BigDecimal.valueOf(20))
+                            ),
+                            IngredientItem(
+                                IngredientId(),
+                                IngredientName("Test ingredient 3"),
+                                IngredientQuantity(5),
+                                IngredientInputTime(BigDecimal.TEN)
+                            )
+                        ).toImmutableList()
+                    )
+                )
             }
         } catch (e: Exception) {
             LOGGER.error("Error fetching ingredients for $name, returning hardcoded list. Error: ${e.message}")

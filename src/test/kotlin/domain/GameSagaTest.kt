@@ -17,19 +17,26 @@ class GameSagaTest {
     private val gameSaga = gameSaga(mockGameClient)
     private val gameId = GameId()
     private val gameName = GameName("something off")
-    private val ingredientItems = listOf(
-        IngredientItem(IngredientId(), IngredientName("ingredientItemName"), IngredientQuantity(5), IngredientInputTime(BigDecimal.TEN))
-    ).toImmutableList()
+    private val ingredientList = IngredientList(
+        listOf(
+            IngredientItem(
+                IngredientId(),
+                IngredientName("Test ingredient 1"),
+                IngredientQuantity(5),
+                IngredientInputTime(BigDecimal.TEN)
+            )
+        ).toImmutableList()
+    )
 
 
     @Test
     fun testGamePreparationStartedEvent() = runBlocking {
-        coEvery { mockGameClient.getIngredients(gameName) } returns flowOf(ingredientItems)
+        coEvery { mockGameClient.getIngredients(gameName) } returns flowOf(ingredientList)
         val gameCreatedEvent = GameCreatedEvent(
             gameId,
             gameName
         )
-        val startGamePreparationCommand = PrepareGameCommand(gameId, gameName, ingredientItems)
+        val startGamePreparationCommand = PrepareGameCommand(gameId, gameName, ingredientList)
 
         with(gameSaga) {
             whenActionResult(

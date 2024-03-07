@@ -1,6 +1,5 @@
 package com.cookingGame.domain
 
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -35,8 +34,7 @@ data class GameCreatedEvent(
 data class GamePreparedEvent(
     override val identifier: GameId,
     val name: GameName,
-    @Serializable(with = ImmutableListSerializer::class)
-    val ingredients: ImmutableList<IngredientItem>,
+    val ingredients: IngredientList,
     override val final: Boolean = false
 ) : GameEvent(){
     val status = GameStatus.PREPARED
@@ -47,7 +45,7 @@ data class GamePreparedEvent(
 data class GameStartedEvent(
     override val identifier: GameId,
     val name: GameName,
-    val ingredients : ImmutableList<IngredientItem>,
+    val ingredients : IngredientList,
     val startTime: GameStartTime,
     override val final: Boolean = false
 ) : GameEvent(){

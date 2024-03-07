@@ -12,15 +12,17 @@ class GameViewTest {
     private val gameView = gameView()
     private val gameId = GameId()
     private val gameName = GameName("Test game")
-    private val emptyIngredientList = emptyList<IngredientItem>().toImmutableList()
-    private val ingredientItems = listOf(
-        IngredientItem(
-            IngredientId(),
-            IngredientName("Test ingredient 1"),
-            IngredientQuantity(5),
-            IngredientInputTime(BigDecimal.TEN)
-        )
-    ).toImmutableList()
+    private val emptyIngredientList = null
+    private val ingredientList = IngredientList(
+        listOf(
+            IngredientItem(
+                IngredientId(),
+                IngredientName("Test ingredient 1"),
+                IngredientQuantity(5),
+                IngredientInputTime(BigDecimal.TEN)
+            )
+        ).toImmutableList()
+    )
     private val gameStartTime = GameStartTime()
 
     @Test
@@ -49,8 +51,8 @@ class GameViewTest {
     @Test
     fun testGamePrepared(): Unit = runBlocking {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
-        val gamePreparedEvent = GamePreparedEvent(gameId, gameName, ingredientItems)
-        val gameViewState = GameViewState(gameId, gameName, gamePreparedEvent.status, ingredientItems, null)
+        val gamePreparedEvent = GamePreparedEvent(gameId, gameName, ingredientList)
+        val gameViewState = GameViewState(gameId, gameName, gamePreparedEvent.status, ingredientList, null)
         with(gameView) {
             givenEvents(
                 listOf(gameCreatedEvent, gamePreparedEvent)
@@ -84,9 +86,9 @@ class GameViewTest {
     @Test
     fun testGameStarted(): Unit = runBlocking {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
-        val gamePreparedEvent = GamePreparedEvent(gameId, gameName, ingredientItems)
-        val gameStartedEvent = GameStartedEvent(gameId, gameName, ingredientItems, gameStartTime)
-        val gameViewState = GameViewState(gameId, gameName, gameStartedEvent.status, ingredientItems, gameStartTime)
+        val gamePreparedEvent = GamePreparedEvent(gameId, gameName, ingredientList)
+        val gameStartedEvent = GameStartedEvent(gameId, gameName, ingredientList, gameStartTime)
+        val gameViewState = GameViewState(gameId, gameName, gameStartedEvent.status, ingredientList, gameStartTime)
         with(gameView) {
             givenEvents(
                 listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent)
@@ -96,7 +98,7 @@ class GameViewTest {
 
     @Test
     fun testGameStarted_DoesNotExistGameError(): Unit = runBlocking {
-        val gameStartedEvent = GameStartedEvent(gameId, gameName, ingredientItems, gameStartTime)
+        val gameStartedEvent = GameStartedEvent(gameId, gameName, ingredientList, gameStartTime)
         val gameViewState = null
         with(gameView) {
             givenEvents(
@@ -108,7 +110,7 @@ class GameViewTest {
     @Test
     fun testGameStarted_NotInPreparedState_Error(): Unit = runBlocking {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
-        val gameStartedEvent = GameStartedEvent(gameId, gameName, ingredientItems, gameStartTime)
+        val gameStartedEvent = GameStartedEvent(gameId, gameName, ingredientList, gameStartTime)
         val gameNotInPreparedStateEvent = GameNotInPreparedStateEvent(gameId, gameName, Error.GameNotPrepared.reason, true)
         val gameViewState = GameViewState(gameId, gameName, gameStartedEvent.status, emptyIngredientList, gameStartTime)
         with(gameView) {

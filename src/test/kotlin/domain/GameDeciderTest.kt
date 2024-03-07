@@ -14,14 +14,16 @@ class GameDeciderTest {
     private val gameDecider = gameDecider()
     private val gameId = GameId()
     private val gameName = GameName("Test game")
-    private val ingredientItems = listOf(
-        IngredientItem(
-            IngredientId(),
-            IngredientName("Test ingredient 1"),
-            IngredientQuantity(5),
-            IngredientInputTime(BigDecimal.TEN)
-        )
-    ).toImmutableList()
+    private val ingredientList = IngredientList(
+        listOf(
+            IngredientItem(
+                IngredientId(),
+                IngredientName("Test ingredient 1"),
+                IngredientQuantity(5),
+                IngredientInputTime(BigDecimal.TEN)
+            )
+        ).toImmutableList()
+    )
     private val gameStartTime = GameStartTime()
 
     @Test
@@ -50,8 +52,8 @@ class GameDeciderTest {
     @Test
     fun testPrepareGame(): Unit = runBlocking {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
-        val prepareGameCommand = PrepareGameCommand(gameId, gameName, ingredientItems)
-        val gamePreparedEvent = GamePreparedEvent(gameId, gameName, ingredientItems)
+        val prepareGameCommand = PrepareGameCommand(gameId, gameName, ingredientList)
+        val gamePreparedEvent = GamePreparedEvent(gameId, gameName, ingredientList)
         with(gameDecider) {
             givenEvents(listOf(gameCreatedEvent)) { // PRE CONDITIONS
                 whenCommand(prepareGameCommand) // ACTION
@@ -61,7 +63,7 @@ class GameDeciderTest {
 
     @Test
     fun testPrepareGame_Does_Not_Exist_Error(): Unit = runBlocking {
-        val prepareGameCommand = PrepareGameCommand(gameId, gameName, ingredientItems)
+        val prepareGameCommand = PrepareGameCommand(gameId, gameName, ingredientList)
         val gameDoesNotExistEvent = GameDoesNotExistEvent(gameId, gameName, Error.GameDoesNotExist.reason, true)
         with(gameDecider) {
             givenEvents(emptyList()) { // PRE CONDITIONS
@@ -72,15 +74,20 @@ class GameDeciderTest {
 
     @Test
     fun testPrepareGame_Not_IN_CREATION_STATE_ERROR(): Unit = runBlocking {
-        val prepareGameCommand = PrepareGameCommand(gameId, gameName, ingredientItems)
+        val prepareGameCommand = PrepareGameCommand(gameId, gameName, ingredientList)
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
-        val gameInOtherStateEvent = GamePreparedEvent(gameId, gameName, ingredientItems)
+        val gameInOtherStateEvent = GamePreparedEvent(gameId, gameName, ingredientList)
 
         val gameNotInCreatableStateEvent =
             GameNotInCreatableStateEvent(gameId, gameName, Error.GameNotCreated.reason, true)
 
         with(gameDecider) {
-            givenEvents(listOf(gameCreatedEvent, gameInOtherStateEvent)) { // Set the game to a state other than 'CREATED'
+            givenEvents(
+                listOf(
+                    gameCreatedEvent,
+                    gameInOtherStateEvent
+                )
+            ) { // Set the game to a state other than 'CREATED'
                 whenCommand(prepareGameCommand) // Attempt to prepare the game
             } thenEvents listOf(gameNotInCreatableStateEvent) // Check for the expected error event
         }
@@ -89,9 +96,9 @@ class GameDeciderTest {
     @Test
     fun testStartGame(): Unit = runBlocking {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
-        val gamePreparedEvent = GamePreparedEvent(gameId, gameName, ingredientItems)
-        val startGameCommand = StartGameCommand(gameId, gameName, ingredientItems, gameStartTime)
-        val gameStartedEvent = GameStartedEvent(gameId, gameName, ingredientItems, gameStartTime)
+        val gamePreparedEvent = GamePreparedEvent(gameId, gameName, ingredientList)
+        val startGameCommand = StartGameCommand(gameId, gameName, ingredientList, gameStartTime)
+        val gameStartedEvent = GameStartedEvent(gameId, gameName, ingredientList, gameStartTime)
         with(gameDecider) {
             givenEvents(listOf(gameCreatedEvent, gamePreparedEvent)) { // PRE CONDITIONS
                 whenCommand(startGameCommand) // ACTION
@@ -101,7 +108,7 @@ class GameDeciderTest {
 
     @Test
     fun testStartGame_Does_Not_Exist_Error(): Unit = runBlocking {
-        val startGameCommand = StartGameCommand(gameId, gameName, ingredientItems, gameStartTime)
+        val startGameCommand = StartGameCommand(gameId, gameName, ingredientList, gameStartTime)
         val gameDoesNotExistEvent = GameDoesNotExistEvent(gameId, gameName, Error.GameDoesNotExist.reason, true)
         with(gameDecider) {
             givenEvents(emptyList()) { // PRE CONDITIONS
@@ -113,8 +120,8 @@ class GameDeciderTest {
     @Test
     fun testStartGame_Not_IN_PREPARED_STATE_ERROR(): Unit = runBlocking {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
-        val startGameCommand = StartGameCommand(gameId, gameName, ingredientItems, gameStartTime)
-        val gameStartedEvent = GameStartedEvent(gameId, gameName, ingredientItems, gameStartTime)
+        val startGameCommand = StartGameCommand(gameId, gameName, ingredientList, gameStartTime)
+        val gameStartedEvent = GameStartedEvent(gameId, gameName, ingredientList, gameStartTime)
         val gameNotInPreparedStateEvent =
             GameNotInPreparedStateEvent(gameId, gameName, Error.GameNotPrepared.reason, true)
         with(gameDecider) {

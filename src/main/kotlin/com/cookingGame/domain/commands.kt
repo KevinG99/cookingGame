@@ -1,6 +1,5 @@
 package com.cookingGame.domain
 
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -27,16 +26,14 @@ data class CreateGameCommand(
 data class PrepareGameCommand(
     override val identifier: GameId,
     val name: GameName,
-    @Serializable(with = ImmutableListSerializer::class)
-    val ingredients: ImmutableList<IngredientItem>
+    val ingredients: IngredientList
 ) : GameCommand()
 
 @Serializable
 data class StartGameCommand(
     override val identifier: GameId,
     val name: GameName,
-    @Serializable(with = ImmutableListSerializer::class)
-    val ingredients: ImmutableList<IngredientItem>,
+    val ingredients: IngredientList,
     val startTime: GameStartTime
 ) : GameCommand()
 

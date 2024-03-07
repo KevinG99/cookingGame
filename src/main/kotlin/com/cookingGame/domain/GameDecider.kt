@@ -1,8 +1,6 @@
 package com.cookingGame.domain
 
 import com.fraktalio.fmodel.domain.Decider
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 
@@ -33,7 +31,7 @@ fun gameDecider() = GameDecider(
     },
     evolve = { s, e ->
         when (e) {
-            is GameCreatedEvent -> Game(e.identifier, e.name, e.status, emptyList<IngredientItem>().toImmutableList(), null)
+            is GameCreatedEvent -> Game(e.identifier, e.name, e.status, null,null)
             is GamePreparedEvent -> s?.copy(status = e.status, ingredients = e.ingredients)
             is GameStartedEvent -> s?.copy(status= e.status, startTime = e.startTime)
             is GameAlreadyExistsEvent -> s
@@ -46,11 +44,10 @@ fun gameDecider() = GameDecider(
     }
 )
 
-
 data class Game(
     val id: GameId,
     val name: GameName,
     val status: GameStatus,
-    val ingredients: ImmutableList<IngredientItem>,
-    val startTime: GameStartTime?
+    val ingredients: IngredientList?,
+    val startTime: GameStartTime?,
 )

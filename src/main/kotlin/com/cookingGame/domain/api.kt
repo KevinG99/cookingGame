@@ -69,6 +69,10 @@ data class IngredientItem(
 
 @Serializable
 @JvmInline
+value class IngredientList(@Serializable(with = ImmutableListSerializer::class) val value: ImmutableList<IngredientItem> = emptyList<IngredientItem>().toImmutableList())
+
+@Serializable
+@JvmInline
 value class GameId(@Serializable(with = UUIDSerializer::class) val value: UUID = UUID.randomUUID())
 
 @Serializable
