@@ -33,7 +33,6 @@ data class GameCreatedEvent(
 @Serializable
 data class GamePreparedEvent(
     override val identifier: GameId,
-    val name: GameName,
     val ingredients: IngredientList,
     val gameDuration: GameDuration,
     override val final: Boolean = false
@@ -45,7 +44,6 @@ data class GamePreparedEvent(
 @Serializable
 data class GameStartedEvent(
     override val identifier: GameId,
-    val name: GameName,
     val ingredients : IngredientList,
     val startTime: GameStartTime,
     val gameDuration: GameDuration,
@@ -55,9 +53,24 @@ data class GameStartedEvent(
 }
 
 @Serializable
+data class GameTimeElapsedEvent(
+    override val identifier: GameId,
+    override val final: Boolean = false
+) : GameEvent()
+
+@Serializable
+data class GameCompletedEvent(
+    override val identifier: GameId,
+    val completionTime: GameCompletionTime,
+    override val final: Boolean = true
+) : GameEvent(){
+    val status = GameStatus.COMPLETED
+}
+
+
+@Serializable
 data class GameDoesNotExistEvent(
     override val identifier: GameId,
-    val name: GameName,
     override val reason: Reason,
     override val final: Boolean = false
 ) : GameErrorEvent()
@@ -65,7 +78,6 @@ data class GameDoesNotExistEvent(
 @Serializable
 data class GameAlreadyExistsEvent(
     override val identifier: GameId,
-    val name: GameName,
     override val reason: Reason,
     override val final: Boolean = false
 ) : GameErrorEvent()
@@ -74,7 +86,6 @@ data class GameAlreadyExistsEvent(
 @Serializable
 data class GameNotInCreatableStateEvent(
     override val identifier: GameId,
-    val name: GameName,
     override val reason: Reason,
     override val final: Boolean = false
 ) : GameErrorEvent()
@@ -82,7 +93,13 @@ data class GameNotInCreatableStateEvent(
 @Serializable
 data class GameNotInPreparedStateEvent(
     override val identifier: GameId,
-    val name: GameName,
+    override val reason: Reason,
+    override val final: Boolean = false
+) : GameErrorEvent()
+
+@Serializable
+data class GameNotInStartedStateEvent(
+    override val identifier: GameId,
     override val reason: Reason,
     override val final: Boolean = false
 ) : GameErrorEvent()

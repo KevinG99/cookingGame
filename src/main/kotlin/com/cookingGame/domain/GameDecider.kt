@@ -3,6 +3,9 @@ package com.cookingGame.domain
 import com.fraktalio.fmodel.domain.Decider
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlin.time.Duration
 
 
 typealias GameDecider = Decider<GameCommand?, Game?, GameEvent?>
@@ -10,40 +13,84 @@ typealias GameDecider = Decider<GameCommand?, Game?, GameEvent?>
 
 fun gameDecider() = GameDecider(
     initialState = null,
-    decide = { c: GameCommand?, s: Game? ->
-        when (c) {
+    decide = { gameCommand: GameCommand?, game: Game? ->
+        when (gameCommand) {
             is CreateGameCommand ->
-                if (s == null) flowOf(GameCreatedEvent(c.identifier, c.name))
-                else flowOf(GameAlreadyExistsEvent(c.identifier, c.name, Error.GameAlreadyExists.reason, true))
+                if (game == null) flowOf(GameCreatedEvent(gameCommand.identifier, gameCommand.name))
+                else flowOf(GameAlreadyExistsEvent(gameCommand.identifier, Error.GameAlreadyExists.reason, true))
 
             is PrepareGameCommand ->
-                if (s == null) flowOf(GameDoesNotExistEvent(c.identifier, c.name, Error.GameDoesNotExist.reason, true))
-                else if(GameStatus.CREATED != s.status) flowOf(GameNotInCreatableStateEvent(c.identifier, c.name, Error.GameNotCreated.reason, true))
-                else flowOf(GamePreparedEvent(c.identifier, c.name, c.ingredients, c.gameDuration))
+                if (game == null) flowOf(GameDoesNotExistEvent(gameCommand.identifier, Error.GameDoesNotExist.reason, true))
+                else if (GameStatus.CREATED != game.status) flowOf(
+                    GameNotInCreatableStateEvent(
+                        gameCommand.identifier,
+
+                        Error.GameNotCreated.reason,
+                        true
+                    )
+                )
+                else flowOf(GamePreparedEvent(gameCommand.identifier, gameCommand.ingredients, gameCommand.gameDuration))
 
             is StartGameCommand ->
-                if (s == null) flowOf(GameDoesNotExistEvent(c.identifier, c.name, Error.GameDoesNotExist.reason, true))
-                else if(GameStatus.PREPARED != s.status) flowOf(GameNotInPreparedStateEvent(c.identifier, c.name, Error.GameNotPrepared.reason, true))
-                else flowOf(GameStartedEvent(c.identifier, c.name, c.ingredients, c.startTime, c.gameDuration))
+                if (game == null) flowOf(GameDoesNotExistEvent(gameCommand.identifier, Error.GameDoesNotExist.reason, true))
+                else if (GameStatus.PREPARED != game.status) flowOf(
+                    GameNotInPreparedStateEvent(
+                        gameCommand.identifier,
 
-            is StartTimerCommand -> TODO()
+                        Error.GameNotPrepared.reason,
+                        true
+                    )
+                )
+                else flowOf(GameStartedEvent(gameCommand.identifier, gameCommand.ingredients, gameCommand.startTime, gameCommand.gameDuration))
+
+            is CheckGameTimerCommand ->
+                when {
+                    game == null -> flowOf(
+                        GameDoesNotExistEvent(
+                            gameCommand.identifier,
+                            Error.GameDoesNotExist.reason,
+                            true
+                        )
+                    )
+
+                    GameStatus.STARTED != game.status -> flowOf(
+                        GameNotInStartedStateEvent(
+                            gameCommand.identifier,
+                            Error.GameNotStarted.reason,
+                            true
+                        )
+                    )
+
+                    game.isTimeElapsed() -> flowOf(GameTimeElapsedEvent(gameCommand.identifier))
+                    else -> emptyFlow()
+                }
+
+            is CompleteGameCommand -> TODO()
+
             null -> emptyFlow()
         }
     },
-    evolve = { s, e ->
-        when (e) {
-            is GameCreatedEvent -> Game(e.identifier, e.name, e.status)
-            is GamePreparedEvent -> s?.copy(status = e.status, ingredients = e.ingredients)
-            is GameStartedEvent -> s?.copy(status= e.status, startTime = e.startTime, gameDuration = e.gameDuration)
-            is GameAlreadyExistsEvent -> s
-            is GameNotInCreatableStateEvent -> s
-            is GameDoesNotExistEvent -> s
-            is GameNotInPreparedStateEvent -> s
-            null -> s
+    evolve = { game, gameEvent ->
+        when (gameEvent) {
+            null -> game
+            is GameCreatedEvent -> Game(gameEvent.identifier, gameEvent.name, gameEvent.status)
+            is GamePreparedEvent -> game?.copy(status = gameEvent.status, ingredients = gameEvent.ingredients)
+            is GameStartedEvent -> game?.copy(status = gameEvent.status, startTime = gameEvent.startTime, gameDuration = gameEvent.gameDuration)
+            is GameAlreadyExistsEvent -> game
+            is GameNotInCreatableStateEvent -> game
+            is GameDoesNotExistEvent -> game
+            is GameNotInPreparedStateEvent -> game
+            is GameCompletedEvent -> TODO()
+            is GameNotInStartedStateEvent -> game
+            is GameTimeElapsedEvent -> TODO()
         }
 
     }
 )
+
+private fun Game.isTimeElapsed(): Boolean =
+    (gameDuration?.value?.toPlainString()?.let { Duration.parse(it) }?.let { startTime?.value?.plus(it) }
+        ?: Instant.DISTANT_PAST) < Clock.System.now()
 
 data class Game(
     val id: GameId,

@@ -19,6 +19,8 @@ fun gameView() = GameView(
             is GameStartedEvent -> s?.copy(status = e.status, startTime = e.startTime)
             is GameErrorEvent -> s
             null -> s
+            is GameCompletedEvent -> TODO()
+            is GameTimeElapsedEvent -> TODO()
         }
     }
 )

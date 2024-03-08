@@ -97,3 +97,11 @@ value class GameDuration(@Serializable(with = BigDecimalSerializer::class) val v
 @Serializable
 @JvmInline
 value class GameStartTime(@Serializable(with = InstantIso8601Serializer::class) val value: Instant = Clock.System.now())
+
+@Serializable
+@JvmInline
+value class GameCompletionTime(@Serializable(with = InstantIso8601Serializer::class) val value: Instant = Clock.System.now())
+
+@Serializable
+@JvmInline
+value class Success(val value: Boolean)
