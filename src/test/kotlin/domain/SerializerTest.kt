@@ -25,10 +25,9 @@ class SerializerTest {
     @Test
     fun serializeEventsWithKotlinSerializer2Test() {
         val expectedGameAlreadyExistsEventString =
-            "{\"type\":\"com.cookingGame.domain.GameAlreadyExistsEvent\",\"identifier\":\"${gameId.value}\",\"name\":\"gameName\",\"reason\":\"test\",\"final\":true}"
+            "{\"type\":\"com.cookingGame.domain.GameAlreadyExistsEvent\",\"identifier\":\"${gameId.value}\",\"reason\":\"test\",\"final\":true}"
         val gameAlreadyExistsEvent: Event = GameAlreadyExistsEvent(
             gameId,
-            gameName,
             Reason("test"),
             true
         )
