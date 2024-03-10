@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.plus
-import kotlin.coroutines.cancellation.CancellationException
 
 
 typealias GameDecider = Decider<GameCommand?, Game?, GameEvent?>
@@ -160,34 +159,31 @@ object GameTimerManager {
         val channel = Channel<GameEvent>()
 
         val job = timerScope.launch {
-            LOGGER.info("Start time: ${game.startTime.value}")
-            LOGGER.info("End time: $endTime")
+            LOGGER.debug("Start time: ${game.startTime.value}")
+            LOGGER.debug("End time: $endTime")
             val gameId = game.id
-            var clock = Clock.System.now()
-            try {
-                while (isActive && clock < endTime) {
-                    clock = Clock.System.now()
-                    if (clock > endTime) break
-                }
+            while (isActive && Clock.System.now() < endTime){}
+
+            if (isActive && Clock.System.now() > endTime) {
                 channel.send(GameTimeElapsedEvent(gameId))
-                LOGGER.info("Command emitted: $clock, ${gameId.value}")
-                channel.close()
-            } catch (e: CancellationException) {
-                LOGGER.error("Timer canceled: $gameId", e)
-                channel.close(e)
-            } finally {
-                activeTimers.remove(gameId)
+                LOGGER.debug("Command emitted:, ${gameId.value}")
             }
+            channel.close()
         }
 
         activeTimers[game.id] = job
-        job.invokeOnCompletion { activeTimers.remove(game.id) }
+        job.invokeOnCompletion {
+            LOGGER.debug("Timer job completed: ${game.id}, $it")
+            activeTimers.remove(game.id)
+        }
 
         channel.consumeAsFlow().collect { emit(it) }
     }
 
     fun stopTimer(gameId: GameId) {
-        activeTimers[gameId]?.cancel(CancellationException("Game timer stopped"))
+        LOGGER.debug("Attempting to stop timer for gameId: $gameId, ${activeTimers[gameId]}")
+        activeTimers[gameId]?.cancel() ?: LOGGER.error("Timer not found: $gameId")
+        LOGGER.debug("Timer stopped: $gameId, ${activeTimers[gameId]}")
     }
 }
 
