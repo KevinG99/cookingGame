@@ -33,19 +33,23 @@ data class PrepareGameCommand(
 data class StartGameCommand(
     override val identifier: GameId,
     val ingredients: IngredientList,
-    val startTime: GameStartTime,
     val gameDuration: GameDuration,
 ) : GameCommand()
 
 
 @Serializable
-data class CheckGameTimerCommand(
+data class StartGameTimerCommand(
     override val identifier: GameId
+) : GameCommand()
+
+@Serializable
+data class EndGameCommand(
+    override val identifier: GameId,
+    val score : GameScore,
+    val completionTime: GameCompletionTime,
 ) : GameCommand()
 
 @Serializable
 data class CompleteGameCommand(
     override val identifier: GameId,
-    val completionTime: GameCompletionTime,
-    val isSuccess: Success
 ) : GameCommand()

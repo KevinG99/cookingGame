@@ -9,6 +9,7 @@ fun gameView() = GameView(
     initialState = null,
     evolve = { s, e ->
         when (e) {
+            null -> s
             is GameCreatedEvent -> GameViewState(
                 e.identifier,
                 e.name,
@@ -17,10 +18,10 @@ fun gameView() = GameView(
 
             is GamePreparedEvent -> s?.copy(status = e.status, ingredients = e.ingredients, gameDuration = e.gameDuration)
             is GameStartedEvent -> s?.copy(status = e.status, startTime = e.startTime)
+            is GameTimeElapsedEvent -> s?.copy(status = e.status)
+            is GameEndedEvent -> TODO()
+            is GameCompletedEvent -> s?.copy(status = e.status)
             is GameErrorEvent -> s
-            null -> s
-            is GameCompletedEvent -> TODO()
-            is GameTimeElapsedEvent -> TODO()
         }
     }
 )
@@ -31,6 +32,6 @@ data class GameViewState(
     val name: GameName,
     val status: GameStatus,
     val ingredients: IngredientList? = null,
-    val startTime: GameStartTime? = null,
     val gameDuration: GameDuration? = null,
+    val startTime: GameStartTime? = null,
 )

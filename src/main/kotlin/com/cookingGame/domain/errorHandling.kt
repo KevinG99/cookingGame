@@ -11,7 +11,5 @@ value class Reason(val value: String)
 enum class Error(val reason: Reason) {
     GameAlreadyExists(Reason("Game already exists")),
     GameDoesNotExist(Reason("Game does not exist")),
-    GameNotCreated(Reason("Game not in CREATED status")),
-    GameNotPrepared(Reason("Game not in PREPARED status")),
-    GameNotStarted(Reason("Game not in STARTED status"))
+    GameNotInCorrectState(Reason("Game not in correct state")),
 }

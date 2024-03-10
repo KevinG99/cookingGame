@@ -3,17 +3,12 @@ package com.cookingGame.domain
 import com.cookingGame.LOGGER
 import com.fraktalio.fmodel.domain.Decider
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
 import kotlinx.datetime.plus
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.time.Duration
 
 
 typealias GameDecider = Decider<GameCommand?, Game?, GameEvent?>
@@ -23,26 +18,6 @@ fun gameDecider() = GameDecider(
     initialState = null,
     decide = { gameCommand: GameCommand?, game: Game? ->
         when (gameCommand) {
-            is CheckGameTimerCommand ->
-                when {
-                    game == null -> flowOf(
-                        GameDoesNotExistEvent(
-                            gameCommand.identifier,
-                            Error.GameDoesNotExist.reason,
-                            true
-                        )
-                    )
-
-                    GameStatus.STARTED != game.status -> flowOf(
-                        GameNotInStartedStateEvent(
-                            gameCommand.identifier,
-                            Error.GameNotStarted.reason,
-                            true
-                        )
-                    )
-                    else -> game.startGameTimer()
-                }
-
             null -> emptyFlow()
             is CreateGameCommand ->
                 if (game == null) flowOf(GameCreatedEvent(gameCommand.identifier, gameCommand.name))
@@ -50,17 +25,13 @@ fun gameDecider() = GameDecider(
 
             is PrepareGameCommand ->
                 if (game == null) flowOf(
-                    GameDoesNotExistEvent(
-                        gameCommand.identifier,
-                        Error.GameDoesNotExist.reason,
-                        true
-                    )
+                    GameDoesNotExistEvent(gameCommand.identifier, Error.GameDoesNotExist.reason, true)
                 )
                 else if (GameStatus.CREATED != game.status) flowOf(
-                    GameNotInCreatableStateEvent(
+                    GameNotInCorrectState(
                         gameCommand.identifier,
-
-                        Error.GameNotCreated.reason,
+                        Error.GameNotInCorrectState.reason,
+                        game.status,
                         true
                     )
                 )
@@ -81,22 +52,42 @@ fun gameDecider() = GameDecider(
                     )
                 )
                 else if (GameStatus.PREPARED != game.status) flowOf(
-                    GameNotInPreparedStateEvent(
+                    GameNotInCorrectState(
                         gameCommand.identifier,
-
-                        Error.GameNotPrepared.reason,
+                        Error.GameNotInCorrectState.reason,
+                        game.status,
                         true
                     )
                 )
                 else flowOf(
                     GameStartedEvent(
                         gameCommand.identifier,
-                        gameCommand.ingredients,
-                        gameCommand.startTime,
-                        gameCommand.gameDuration
+                        gameCommand.ingredients
                     )
                 )
 
+
+            is StartGameTimerCommand ->
+                when {
+                    game == null -> flowOf(
+                        GameDoesNotExistEvent(
+                            gameCommand.identifier,
+                            Error.GameDoesNotExist.reason,
+                            true
+                        )
+                    )
+
+                    GameStatus.STARTED != game.status -> flowOf(
+                        GameNotInCorrectState(
+                            gameCommand.identifier,
+                            Error.GameNotInCorrectState.reason,
+                            game.status,
+                            true
+                        )
+                    )
+
+                    else -> GameTimerManager.startTimer(game)
+                }
 
             is CompleteGameCommand ->
                 if (game == null) flowOf(
@@ -106,82 +97,99 @@ fun gameDecider() = GameDecider(
                         true
                     )
                 )
-                else if (GameStatus.STARTED != game.status) flowOf(
-                    GameNotInStartedStateEvent(
+                else if (GameStatus.GAME_OVER == game.status) flowOf(
+                    GameCompletedEvent(
                         gameCommand.identifier,
-                        Error.GameNotStarted.reason,
+                        Success(false),
+                    )
+                )
+                else if (GameStatus.GAME_ENDED == game.status) flowOf(
+                    GameCompletedEvent(
+                        gameCommand.identifier,
+                        Success(true),
+                    )
+                )
+                else flowOf(
+                    GameNotInCorrectState(
+                        gameCommand.identifier,
+                        Error.GameNotInCorrectState.reason,
+                        game.status,
                         true
                     )
                 )
-                else if(game.isSuccess?.value == false){
-                    flowOf(
-                        GameCompletedEvent(
-                            gameCommand.identifier,
-                            gameCommand.completionTime,
-                            gameCommand.isSuccess,
-                            game.score ?: GameScore(0)
-                        )
-                    )
-                }
-                else flowOf(
-                    GameCompletedEvent(
-                        gameCommand.identifier,
-                        gameCommand.completionTime,
-                        gameCommand.isSuccess,
-                        game.score ?: GameScore(0)
-                    )
-                )
+
+            is EndGameCommand -> TODO()
         }
     },
     evolve = { game, gameEvent ->
         when (gameEvent) {
             null -> game
             is GameCreatedEvent -> Game(gameEvent.identifier, gameEvent.name, gameEvent.status)
-            is GamePreparedEvent -> game?.copy(status = gameEvent.status, ingredients = gameEvent.ingredients, gameDuration = gameEvent.gameDuration)
+            is GamePreparedEvent -> game?.copy(
+                status = gameEvent.status,
+                ingredients = gameEvent.ingredients,
+                gameDuration = gameEvent.gameDuration
+            )
+
             is GameStartedEvent -> game?.copy(
                 status = gameEvent.status,
                 startTime = gameEvent.startTime,
             )
 
-            is GameTimeElapsedEvent -> game?.copy(isSuccess = Success(false))
+            is GameTimeElapsedEvent -> game?.copy(
+                status = gameEvent.status
+            )
+
+            is GameEndedEvent -> TODO()
             is GameCompletedEvent -> game?.copy(status = gameEvent.status, isSuccess = gameEvent.isSuccess)
             is GameAlreadyExistsEvent -> game
-            is GameNotInCreatableStateEvent -> game
             is GameDoesNotExistEvent -> game
-            is GameNotInPreparedStateEvent -> game
-            is GameNotInStartedStateEvent -> game
+            is GameNotInCorrectState -> game
         }
 
     }
 )
 
-private fun Game.startGameTimer(): Flow<GameEvent> = callbackFlow {
-    val endTime = startTime?.value?.plus(gameDuration?.value?.longValueExact()!!, DateTimeUnit.SECOND)!!
 
-    val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    val job = scope.launch {
-        LOGGER.info("End time: $endTime")
-        var clock = Clock.System.now()
-        LOGGER.debug("Start time: {}", clock)
-        try {
-            while (isActive && clock < endTime) {
-                clock = Clock.System.now()
-                if (clock > endTime) break
+object GameTimerManager {
+    private val activeTimers = mutableMapOf<GameId, Job>()
+
+    fun startTimer(game: Game): Flow<GameEvent> = flow {
+        val timerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+        val endTime = game.startTime?.value?.plus(game.gameDuration?.value?.toLong()!!, DateTimeUnit.SECOND)!!
+        val channel = Channel<GameEvent>()
+
+        val job = timerScope.launch {
+            LOGGER.info("Start time: ${game.startTime.value}")
+            LOGGER.info("End time: $endTime")
+            val gameId = game.id
+            var clock = Clock.System.now()
+            try {
+                while (isActive && clock < endTime) {
+                    clock = Clock.System.now()
+                    if (clock > endTime) break
+                }
+                channel.send(GameTimeElapsedEvent(gameId))
+                LOGGER.info("Command emitted: $clock, ${gameId.value}")
+                channel.close()
+            } catch (e: CancellationException) {
+                LOGGER.error("Timer canceled: $gameId", e)
+                channel.close(e)
+            } finally {
+                activeTimers.remove(gameId)
             }
-            send(GameTimeElapsedEvent(id))
-        } catch (e: CancellationException) {
-            LOGGER.error("Timer canceled: $id", e)
-        } finally {
-            scope.cancel()
         }
+
+        activeTimers[game.id] = job
+        job.invokeOnCompletion { activeTimers.remove(game.id) }
+
+        channel.consumeAsFlow().collect { emit(it) }
     }
 
-    awaitClose { job.cancel() }
+    fun stopTimer(gameId: GameId) {
+        activeTimers[gameId]?.cancel(CancellationException("Game timer stopped"))
+    }
 }
-
-private fun Game.isTimeElapsed(): Boolean =
-    (gameDuration?.value?.toPlainString()?.let { Duration.parse(it) }?.let { startTime?.value?.plus(it) }
-        ?: Instant.DISTANT_PAST) < Clock.System.now()
 
 data class Game(
     val id: GameId,

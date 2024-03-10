@@ -32,7 +32,7 @@ class GameService {
                     clock = Clock.System.now()
                     if (clock > endTime) break
                 }
-                channel.send(CheckGameTimerCommand(gameId))
+                channel.send(StartGameTimerCommand(gameId))
                 LOGGER.info("Command emitted: $clock")
                 channel.close()
             } catch (e: CancellationException) {

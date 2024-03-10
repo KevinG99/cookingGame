@@ -1,7 +1,6 @@
 package com.cookingGame.domain
 
 import com.cookingGame.adapter.clients.GameClient
-import com.cookingGame.application.GameService
 import com.fraktalio.fmodel.domain.Saga
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
@@ -22,27 +21,21 @@ typealias GameSaga = Saga<GameEvent?, GameCommand>
  * `react` is a pure function/lambda that takes any event/action-result of type [GameEvent] as parameter, and returns the flow of commands/actions Flow<[GameCommand]> to be published further downstream.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-fun gameSaga(gameClient: GameClient, gameService: GameService) = GameSaga(
+fun gameSaga(gameClient: GameClient) = GameSaga(
     react = { e ->
         when (e) {
-            is GameStartedEvent -> flowOf(CheckGameTimerCommand(e.identifier))
-
             null -> emptyFlow() // We ignore the `null` event by returning the empty flow of commands. Only the Saga that can handle `null` event/action-result can be combined (Monoid) with other Sagas.
             is GameCreatedEvent -> gameClient.getIngredients(e.name).flatMapConcat { ollamaResponse ->
                 flowOf(PrepareGameCommand(e.identifier, ollamaResponse.ingredientList, ollamaResponse.gameDuration))
             }
-
             is GamePreparedEvent -> emptyFlow()
+            is GameStartedEvent -> flowOf(StartGameTimerCommand(e.identifier))
+            is GameTimeElapsedEvent -> emptyFlow()
+            is GameEndedEvent -> emptyFlow()
+            is GameCompletedEvent -> emptyFlow()
             is GameAlreadyExistsEvent -> emptyFlow()
             is GameDoesNotExistEvent -> emptyFlow()
-            is GameNotInCreatableStateEvent -> emptyFlow()
-            is GameNotInPreparedStateEvent -> emptyFlow()
-            is GameCompletedEvent -> {
-                gameService.stopGameTimer(e.identifier)
-                emptyFlow()
-            }
-            is GameNotInStartedStateEvent -> TODO()
-            is GameTimeElapsedEvent -> flowOf(CompleteGameCommand(e.identifier))
+            is GameNotInCorrectState -> emptyFlow()
         }
     }
 )

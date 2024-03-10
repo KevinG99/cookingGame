@@ -16,7 +16,6 @@ suspend infix fun <E> Flow<E>.thenEvents(expected: Iterable<E>) = assertIterable
 
 // #####  Saga DSL  ######
 fun <AR, A> ISaga<AR, A>.whenActionResult(actionResults: AR) = react(actionResults)
-fun <AR, A> ISaga<AR, A>.whenMultipleActionResult(actionResults: AR) = react(actionResults)
 suspend infix fun <A> Flow<A>.expectActions(expected: Iterable<A>) = assertIterableEquals(expected, toList())
 
 

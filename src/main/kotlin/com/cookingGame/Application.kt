@@ -13,7 +13,6 @@ import com.cookingGame.adapter.persistence.eventstream.EventStreamProcessor
 import com.cookingGame.adapter.persistence.extension.pooledConnectionFactory
 import com.cookingGame.adapter.routes.cookingGameRouting
 import com.cookingGame.application.Aggregate
-import com.cookingGame.application.GameService
 import com.cookingGame.application.aggregate
 import com.cookingGame.application.materializedView
 import com.cookingGame.domain.*
@@ -39,13 +38,12 @@ fun main(): Unit = SuspendApp {
         val connectionFactory: ConnectionFactory = pooledConnectionFactory(Env.R2DBCDataSource())
         // ### Command Side - Event Sourcing ###
         val gameClient = GameClient()
-        val gameService = GameService()
         val eventStore = EventStore(connectionFactory).apply { initSchema() }
         val aggregateEventRepository = AggregateEventRepositoryImpl(eventStore)
         val aggregate = aggregate(
             gameDecider(),
             ingredientDecider(),
-            gameSaga(gameClient, gameService),
+            gameSaga(gameClient),
             ingredientSaga(),
             aggregateEventRepository
         )

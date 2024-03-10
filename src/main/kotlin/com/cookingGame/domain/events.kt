@@ -45,25 +45,35 @@ data class GamePreparedEvent(
 data class GameStartedEvent(
     override val identifier: GameId,
     val ingredients : IngredientList,
-    val startTime: GameStartTime,
-    val gameDuration: GameDuration,
     override val final: Boolean = false
 ) : GameEvent(){
     val status = GameStatus.STARTED
+    val startTime : GameStartTime = GameStartTime()
 }
 
 @Serializable
 data class GameTimeElapsedEvent(
     override val identifier: GameId,
     override val final: Boolean = false
-) : GameEvent()
+) : GameEvent(){
+    val status = GameStatus.GAME_OVER
+    val isSuccess = Success(false)
+}
+
+@Serializable
+data class GameEndedEvent(
+    override val identifier: GameId,
+    val score : GameScore,
+    val completionTime: GameCompletionTime,
+    override val final: Boolean = false
+) : GameEvent(){
+    val status = GameStatus.GAME_OVER
+}
 
 @Serializable
 data class GameCompletedEvent(
     override val identifier: GameId,
-    val completionTime: GameCompletionTime,
     val isSuccess: Success,
-    val score: GameScore,
     override val final: Boolean = true
 ) : GameEvent(){
     val status = GameStatus.COMPLETED
@@ -84,24 +94,10 @@ data class GameAlreadyExistsEvent(
     override val final: Boolean = false
 ) : GameErrorEvent()
 
-
 @Serializable
-data class GameNotInCreatableStateEvent(
+data class GameNotInCorrectState(
     override val identifier: GameId,
     override val reason: Reason,
-    override val final: Boolean = false
-) : GameErrorEvent()
-
-@Serializable
-data class GameNotInPreparedStateEvent(
-    override val identifier: GameId,
-    override val reason: Reason,
-    override val final: Boolean = false
-) : GameErrorEvent()
-
-@Serializable
-data class GameNotInStartedStateEvent(
-    override val identifier: GameId,
-    override val reason: Reason,
+    val status : GameStatus,
     override val final: Boolean = false
 ) : GameErrorEvent()
