@@ -104,4 +104,8 @@ value class GameCompletionTime(@Serializable(with = InstantIso8601Serializer::cl
 
 @Serializable
 @JvmInline
+value class GameScore(val value: Int)
+
+@Serializable
+@JvmInline
 value class Success(val value: Boolean)

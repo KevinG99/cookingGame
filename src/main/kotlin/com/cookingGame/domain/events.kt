@@ -62,6 +62,8 @@ data class GameTimeElapsedEvent(
 data class GameCompletedEvent(
     override val identifier: GameId,
     val completionTime: GameCompletionTime,
+    val isSuccess: Success,
+    val score: GameScore,
     override val final: Boolean = true
 ) : GameEvent(){
     val status = GameStatus.COMPLETED

@@ -8,11 +8,9 @@ import expectActions
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.plus
 import org.junit.jupiter.api.Test
@@ -20,7 +18,6 @@ import whenActionResult
 import java.math.BigDecimal
 
 class GameSagaTest {
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val mockGameClient = mockk<GameClient>(relaxed = true)
     private val gameService = GameService()
     private val gameSaga = gameSaga(mockGameClient, gameService)
@@ -37,10 +34,11 @@ class GameSagaTest {
         ).toImmutableList()
     )
 
-    private val gameDuration = GameDuration(BigDecimal.valueOf(10))
+    private val gameDuration = GameDuration(BigDecimal.valueOf(5))
     private val gameStartTime = GameStartTime()
     private val ollamaResponse = OllamaResponse(gameDuration, ingredientList)
-
+    private val gameCompletionTime = GameCompletionTime()
+    private val gameIsSuccess = Success(true)
     @Test
     fun testGamePreparationStartedEvent() = runBlocking {
         coEvery { mockGameClient.getIngredients(gameName) } returns flowOf(ollamaResponse)
@@ -68,20 +66,37 @@ class GameSagaTest {
         val secondGameStartedEvent = GameStartedEvent(
             GameId(),
             ingredientList,
-            GameStartTime(Clock.System.now().plus(2, DateTimeUnit.SECOND)),
-            GameDuration(BigDecimal.valueOf(3)))
-            val checkGameTimerCommand = CheckGameTimerCommand (gameId)
-        LOGGER.info("First Game started: ${gameStartedEvent.startTime.value}")
-        LOGGER.info("Second Game started: ${secondGameStartedEvent.startTime.value}")
+            GameStartTime(gameStartTime.value.plus(1, DateTimeUnit.SECOND)),
+            GameDuration(gameDuration.value.minus(1.toBigDecimal())))
+
+        val checkGameTimerCommand = CheckGameTimerCommand(gameId)
         val checkGameTimerCommand2 = CheckGameTimerCommand(secondGameStartedEvent.identifier)
         with(gameSaga) {
-
-            whenActionResult(
-                gameStartedEvent
-            ) expectActions listOf(checkGameTimerCommand)
+            launch {
+                LOGGER.info("First Game started: ${gameStartedEvent.startTime.value},$gameId")
+                whenActionResult(
+                    gameStartedEvent
+                ) expectActions listOf(checkGameTimerCommand)
+            }
+            LOGGER.info("Second Game started: ${secondGameStartedEvent.startTime.value}, ${secondGameStartedEvent.identifier}")
             whenActionResult(
                 secondGameStartedEvent
             ) expectActions listOf(checkGameTimerCommand2)
+        }
+    }
+
+    @Test
+    fun testGameCompletionEvent() = runBlocking {
+        val gameCompletedEvent = GameCompletedEvent(
+            gameId,
+            gameCompletionTime,
+            gameIsSuccess,
+            GameScore(0)
+        )
+        with(gameSaga) {
+            whenActionResult(
+                gameCompletedEvent
+            ) expectActions listOf()
         }
     }
 }

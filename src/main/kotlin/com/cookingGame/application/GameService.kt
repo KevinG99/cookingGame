@@ -26,15 +26,21 @@ class GameService {
         activeTimers[gameId] = job
 
         timerScope.launch(job) {
-        LOGGER.info("End time: $endTime, game id: $gameId")
             var clock = Clock.System.now()
-            while (isActive && clock < endTime) {
-                clock = Clock.System.now()
-                if (clock > endTime) break
+            try {
+                while (isActive && clock < endTime) {
+                    clock = Clock.System.now()
+                    if (clock > endTime) break
+                }
+                channel.send(CheckGameTimerCommand(gameId))
+                LOGGER.info("Command emitted: $clock")
+                channel.close()
+            } catch (e: CancellationException) {
+                LOGGER.error("Timer canceled: $gameId", e)
+                channel.close(e)
+            } finally {
+                activeTimers.remove(gameId)
             }
-            channel.send(CheckGameTimerCommand(gameId))
-            LOGGER.info("Command emitted: $clock, game id: $gameId")
-            channel.close()
         }
 
         channel.consume {
