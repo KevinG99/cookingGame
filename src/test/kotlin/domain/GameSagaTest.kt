@@ -7,7 +7,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import whenActionResult
 import java.math.BigDecimal
@@ -34,7 +34,7 @@ class GameSagaTest {
     private val gameCompletionTime = GameCompletionTime()
     private val gameIsSuccess = Success(true)
     @Test
-    fun testGamePreparationStartedEvent() = runBlocking {
+    fun testGamePreparationStartedEvent() = runTest {
         coEvery { mockGameClient.getIngredients(gameName) } returns flowOf(ollamaResponse)
         val gameCreatedEvent = GameCreatedEvent(
             gameId,
@@ -50,7 +50,7 @@ class GameSagaTest {
     }
 
     @Test
-    fun testStartGameTimerCommand() = runBlocking{
+    fun testStartGameTimerCommand() = runTest{
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
         val startGameTimerCommand = StartGameTimerCommand(gameId)
         with(gameSaga) {

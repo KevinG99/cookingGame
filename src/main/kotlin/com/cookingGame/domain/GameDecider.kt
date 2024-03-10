@@ -117,7 +117,29 @@ fun gameDecider() = GameDecider(
                     )
                 )
 
-            is EndGameCommand -> TODO()
+            is EndGameCommand -> {
+                if (game == null) flowOf(
+                    GameDoesNotExistEvent(
+                        gameCommand.identifier,
+                        Error.GameDoesNotExist.reason,
+                        true
+                    )
+                )
+                else if (GameStatus.STARTED != game.status) flowOf(
+                    GameNotInCorrectState(
+                        gameCommand.identifier,
+                        Error.GameNotInCorrectState.reason,
+                        game.status,
+                        true
+                    )
+                )
+                else flowOf(
+                    GameEndedEvent(
+                        gameCommand.identifier,
+                        gameCommand.score
+                    )
+                )
+            }
         }
     },
     evolve = { game, gameEvent ->
@@ -139,7 +161,11 @@ fun gameDecider() = GameDecider(
                 status = gameEvent.status
             )
 
-            is GameEndedEvent -> TODO()
+            is GameEndedEvent -> game?.copy(
+                status = gameEvent.status,
+                score = gameEvent.score,
+                completionTime = gameEvent.completionTime
+            )
             is GameCompletedEvent -> game?.copy(status = gameEvent.status, isSuccess = gameEvent.isSuccess)
             is GameAlreadyExistsEvent -> game
             is GameDoesNotExistEvent -> game
@@ -195,5 +221,6 @@ data class Game(
     val ingredients: IngredientList? = null,
     val startTime: GameStartTime? = null,
     val score: GameScore? = null,
-    val isSuccess: Success? = null
+    val isSuccess: Success? = null,
+    val completionTime: GameCompletionTime? = null
 )

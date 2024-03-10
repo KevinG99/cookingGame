@@ -3,7 +3,8 @@ package domain
 import com.cookingGame.domain.*
 import givenEvents
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+
 import org.junit.jupiter.api.Test
 import thenState
 import java.math.BigDecimal
@@ -24,10 +25,14 @@ class GameViewTest {
         ).toImmutableList()
     )
     private val gameStartTime = GameStartTime()
-    private val gameDuration = GameDuration(BigDecimal.valueOf(5))
+    private val gameDuration = GameDuration(BigDecimal.valueOf(1))
+    private val gameCompletionTime = GameCompletionTime()
+    private val gameIsSuccess = Success(true)
+    private val gameIsNotSuccess = Success(false)
+    private val gameScore = GameScore(100)
 
     @Test
-    fun testGameCreated(): Unit = runBlocking {
+    fun testGameCreated(): Unit = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gameViewState = GameViewState(gameId, gameName, gameCreatedEvent.status)
         with(gameView) {
@@ -38,7 +43,7 @@ class GameViewTest {
     }
 
     @Test
-    fun testGamePrepared(): Unit = runBlocking {
+    fun testGamePrepared(): Unit = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameViewState = GameViewState(gameId, gameName, gamePreparedEvent.status, ingredientList, gameDuration)
@@ -50,7 +55,7 @@ class GameViewTest {
     }
 
     @Test
-    fun testGameStarted(): Unit = runBlocking {
+    fun testGameStarted(): Unit = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
@@ -63,7 +68,7 @@ class GameViewTest {
     }
 
     @Test
-    fun testGameTimeElapsed(): Unit = runBlocking {
+    fun testGameTimeElapsed(): Unit = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
@@ -77,7 +82,7 @@ class GameViewTest {
     }
 
     @Test
-    fun testGameCompletion_WHEN_GameTimeElapsed(): Unit = runBlocking {
+    fun testGameCompletion_WHEN_GameTimeElapsed(): Unit = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
@@ -86,6 +91,21 @@ class GameViewTest {
         with(gameView) {
             givenEvents(
                 listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent, gameTimeElapsedEvent)
+            ) thenState gameViewState
+        }
+    }
+
+    @Test
+    fun testGameEnded(): Unit = runTest  {
+        val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
+        val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
+        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameTimeElapsedEvent = GameTimeElapsedEvent(gameId)
+        val gameEndedEvent = GameEndedEvent(gameId, gameScore)
+        val gameViewState = GameViewState(gameId, gameName, gameEndedEvent.status, ingredientList, gameDuration, gameStartedEvent.startTime, score = gameEndedEvent.score, completionTime = gameEndedEvent.completionTime)
+        with(gameView) {
+            givenEvents(
+                listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent, gameTimeElapsedEvent, gameEndedEvent)
             ) thenState gameViewState
         }
     }

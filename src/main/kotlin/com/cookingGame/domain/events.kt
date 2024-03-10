@@ -57,17 +57,16 @@ data class GameTimeElapsedEvent(
     override val final: Boolean = false
 ) : GameEvent(){
     val status = GameStatus.GAME_OVER
-    val isSuccess = Success(false)
 }
 
 @Serializable
 data class GameEndedEvent(
     override val identifier: GameId,
     val score : GameScore,
-    val completionTime: GameCompletionTime,
     override val final: Boolean = false
 ) : GameEvent(){
-    val status = GameStatus.GAME_OVER
+    val status = GameStatus.GAME_ENDED
+    val completionTime = GameCompletionTime()
 }
 
 @Serializable
