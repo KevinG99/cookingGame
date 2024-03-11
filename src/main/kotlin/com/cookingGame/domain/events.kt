@@ -11,10 +11,6 @@ sealed class Event {
 sealed class GameEvent : Event() {
     abstract val identifier: GameId
 }
-@Serializable
-sealed class IngredientEvent : Event() {
-    abstract val identifier: IngredientId
-}
 
 @Serializable
 sealed class GameErrorEvent : GameEvent() {
@@ -100,3 +96,34 @@ data class GameNotInCorrectState(
     val status : GameStatus,
     override val final: Boolean = false
 ) : GameErrorEvent()
+
+
+// INGREDIENTS
+@Serializable
+sealed class IngredientEvent : Event() {
+    abstract val identifier: IngredientId
+}
+
+@Serializable
+sealed class IngredientErrorEvent : IngredientEvent() {
+    abstract val reason: Reason
+}
+
+@Serializable
+data class IngredientInitializedEvent(
+    override val identifier: IngredientId,
+    val gameId: GameId,
+    val ingredientName: IngredientName,
+    val ingredientQuantity: IngredientQuantity,
+    val inputTime: IngredientInputTime,
+    override val final: Boolean = false
+) : IngredientEvent(){
+    val status = IngredientStatus.INITIALIZED
+}
+
+@Serializable
+data class IngredientAlreadyExistsEvent(
+    override val identifier: IngredientId,
+    override val reason: Reason,
+    override val final: Boolean = false
+) : IngredientErrorEvent()

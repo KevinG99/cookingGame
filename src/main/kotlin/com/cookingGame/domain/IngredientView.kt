@@ -6,16 +6,26 @@ typealias IngredientView = View<IngredientViewState?, IngredientEvent?>
 
 fun ingredientView() = IngredientView(
     initialState = null,
-    evolve = { s, e ->
-        when (e) {
-            null -> s
-            else -> s //TODO
+    evolve = { ingredientViewState, ingredientEvent ->
+        when (ingredientEvent) {
+            null -> ingredientViewState
+            is IngredientInitializedEvent -> IngredientViewState(
+                ingredientEvent.identifier,
+                ingredientEvent.gameId,
+                ingredientEvent.ingredientName,
+                ingredientEvent.ingredientQuantity,
+                ingredientEvent.inputTime,
+                ingredientEvent.status
+            )
+            is IngredientAlreadyExistsEvent -> ingredientViewState
         }
     }
 )
 data class IngredientViewState(
     val id: IngredientId,
+    val gameId: GameId,
     val name: IngredientName,
     val quantity: IngredientQuantity,
-    val ingredientInputTime: IngredientInputTime
+    val inputTime: IngredientInputTime,
+    val status: IngredientStatus
 )

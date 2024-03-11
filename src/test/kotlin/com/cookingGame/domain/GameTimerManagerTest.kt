@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 class GameTimerManagerTest {
+    private val gameTimeManager = GameTimerManager
     private val gameId = GameId()
     private val gameName = GameName("Test game")
     private val gameStartTime = GameStartTime()
@@ -23,7 +24,7 @@ class GameTimerManagerTest {
     @Test
     fun `startTimer should emit GameTimeElapsedEvent`() = runBlocking {
         val events = mutableListOf<GameEvent>()
-        GameTimerManager.startTimer(game).take(1).collect { gameEvent ->
+        gameTimeManager.startTimer(game).take(1).collect { gameEvent ->
             LOGGER.info(gameEvent.toString())
             events.add(gameEvent)
             assertTrue(events.any { it is GameTimeElapsedEvent })
@@ -33,11 +34,11 @@ class GameTimerManagerTest {
     @Test
     fun `stopTimer should stop the game timer`() = runBlocking {
         val events = mutableListOf<GameEvent>()
-        val eventFlow = GameTimerManager.startTimer(game).take(1)
+        val eventFlow = gameTimeManager.startTimer(game).take(1)
         println(Clock.System.now())
         launch {
             delay(gameDuration.value.longValueExact() * 1000 / 2)
-            GameTimerManager.stopTimer(game.id)
+            gameTimeManager.stopTimer(game.id)
         }
 
         eventFlow.collect { gameEvent ->
@@ -51,14 +52,14 @@ class GameTimerManagerTest {
     fun `start multiple timers should emit multiple GameTimeElapsedEvent`() = runBlocking {
         val channel = Channel<GameEvent>(Channel.UNLIMITED)
         launch {
-            val eventFlow = GameTimerManager.startTimer(game).take(1)
+            val eventFlow = gameTimeManager.startTimer(game).take(1)
             eventFlow.collect { gameEvent ->
                 channel.send(gameEvent)
             }
         }
 
         launch {
-            val eventFlow2 = GameTimerManager.startTimer(game).take(1)
+            val eventFlow2 = gameTimeManager.startTimer(game).take(1)
             eventFlow2.collect { gameEvent ->
                 channel.send(gameEvent)
             }
@@ -78,20 +79,20 @@ class GameTimerManagerTest {
         val game2 = game.copy(id = GameId())
         val channel = Channel<GameEvent>(Channel.UNLIMITED)
         launch {
-            val eventFlow = GameTimerManager.startTimer(game).take(1)
+            val eventFlow = gameTimeManager.startTimer(game).take(1)
             eventFlow.collect { gameEvent ->
                 channel.send(gameEvent)
             }
         }
 
         launch {
-            val eventFlow2 = GameTimerManager.startTimer(game2).take(1)
+            val eventFlow2 = gameTimeManager.startTimer(game2).take(1)
             eventFlow2.collect { gameEvent ->
                 channel.send(gameEvent)
             }
         }
         delay(gameDuration.value.longValueExact() * 1000 / 2)
-        GameTimerManager.stopTimer(game.id)
+        gameTimeManager.stopTimer(game.id)
         delay(gameDuration.value.longValueExact() * 1000 + 500)
         val eventList = mutableListOf<GameEvent>()
         while (!channel.isEmpty) {

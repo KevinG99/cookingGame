@@ -10,10 +10,6 @@ sealed class GameCommand : Command() {
     abstract val identifier: GameId
 }
 
-@Serializable
-sealed class IngredientCommand : Command() {
-    abstract val identifier: IngredientId
-}
 
 
 @Serializable
@@ -53,3 +49,17 @@ data class EndGameCommand(
 data class CompleteGameCommand(
     override val identifier: GameId,
 ) : GameCommand()
+
+@Serializable
+sealed class IngredientCommand : Command() {
+    abstract val identifier: IngredientId
+}
+
+@Serializable
+data class InitalizeIngredientCommand(
+    override val identifier: IngredientId,
+    val gameId: GameId,
+    val name : IngredientName,
+    val quantity: IngredientQuantity,
+    val inputTime: IngredientInputTime,
+) : IngredientCommand()

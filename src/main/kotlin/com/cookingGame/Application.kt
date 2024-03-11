@@ -44,7 +44,6 @@ fun main(): Unit = SuspendApp {
             gameDecider(),
             ingredientDecider(),
             gameSaga(gameClient),
-            ingredientSaga(),
             aggregateEventRepository
         )
         // ### Query Side - Event Streaming, Materialized Views and Sagas ###

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.flowOf
 /**
  * A convenient type alias for Saga<GameEvent?, GameCommand>
  */
-typealias GameSaga = Saga<GameEvent?, GameCommand>
+typealias GameSaga = Saga<Event?, Command>
 
 /**
  * Saga is a datatype that represents the central point of control deciding what to execute next.
@@ -28,7 +28,10 @@ fun gameSaga(gameClient: GameClient) = GameSaga(
             is GameCreatedEvent -> gameClient.getIngredients(e.name).flatMapConcat { ollamaResponse ->
                 flowOf(PrepareGameCommand(e.identifier, ollamaResponse.ingredientList, ollamaResponse.gameDuration))
             }
-            is GamePreparedEvent -> emptyFlow()
+            is GamePreparedEvent -> //foreach ingredients
+                e.ingredients.value.map { ingredient ->
+                    flowOf(InitalizeIngredientCommand(ingredient.id, e.identifier, ingredient.name, ingredient.quantity, ingredient.inputTime ))
+                }.reduce { acc, flow -> acc.flatMapConcat { flow } }
             is GameStartedEvent -> flowOf(StartGameTimerCommand(e.identifier))
             is GameTimeElapsedEvent -> emptyFlow()
             is GameEndedEvent -> emptyFlow()
@@ -36,6 +39,8 @@ fun gameSaga(gameClient: GameClient) = GameSaga(
             is GameAlreadyExistsEvent -> emptyFlow()
             is GameDoesNotExistEvent -> emptyFlow()
             is GameNotInCorrectState -> emptyFlow()
+            is IngredientAlreadyExistsEvent -> emptyFlow()
+            is IngredientInitializedEvent -> TODO()
         }
     }
 )

@@ -15,7 +15,6 @@ internal fun aggregate(
     gameDecider: GameDecider,
     ingredientDecider: IngredientDecider,
     gameSaga: GameSaga,
-    ingredientSaga: IngredientSaga,
     eventRepository: AggregateEventRepository,
 ): Aggregate = EventSourcingLockingOrchestratingAggregate(
     // Combining two deciders into one.
@@ -23,5 +22,5 @@ internal fun aggregate(
     // How and where do you want to store new events.
     eventRepository = eventRepository,
     // Combining individual choreography Sagas into one orchestrating Saga.
-    saga = gameSaga.combine(ingredientSaga)
+    saga = gameSaga
 )
