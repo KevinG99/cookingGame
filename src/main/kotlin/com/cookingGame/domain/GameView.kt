@@ -7,21 +7,21 @@ typealias GameView = View<GameViewState?, GameEvent?>
 
 fun gameView() = GameView(
     initialState = null,
-    evolve = { s, e ->
-        when (e) {
-            null -> s
+    evolve = { gameViewState, gameEvent ->
+        when (gameEvent) {
+            null -> gameViewState
             is GameCreatedEvent -> GameViewState(
-                e.identifier,
-                e.name,
-                e.status,
+                gameEvent.identifier,
+                gameEvent.name,
+                gameEvent.status,
             )
 
-            is GamePreparedEvent -> s?.copy(status = e.status, ingredients = e.ingredients, gameDuration = e.gameDuration)
-            is GameStartedEvent -> s?.copy(status = e.status, startTime = e.startTime)
-            is GameTimeElapsedEvent -> s?.copy(status = e.status)
-            is GameEndedEvent -> s?.copy(status = e.status,score = e.score, completionTime = e.completionTime)
-            is GameCompletedEvent -> s?.copy(status = e.status , isSuccess = e.isSuccess)
-            is GameErrorEvent -> s
+            is GamePreparedEvent -> gameViewState?.copy(status = gameEvent.status, ingredients = gameEvent.ingredients, gameDuration = gameEvent.gameDuration)
+            is GameStartedEvent -> gameViewState?.copy(status = gameEvent.status, startTime = gameEvent.startTime)
+            is GameTimeElapsedEvent -> gameViewState?.copy(status = gameEvent.status)
+            is GameEndedEvent -> gameViewState?.copy(status = gameEvent.status,score = gameEvent.score, completionTime = gameEvent.completionTime)
+            is GameCompletedEvent -> gameViewState?.copy(status = gameEvent.status , isSuccess = gameEvent.isSuccess)
+            is GameErrorEvent -> gameViewState
         }
     }
 )
