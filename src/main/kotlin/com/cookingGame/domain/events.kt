@@ -177,3 +177,12 @@ data class IngredientPreparationCompletedEvent(
     val ingredientStatus = IngredientStatus.PREPARED
     val preparationCompleteTime : IngredientPreparationTimestamp = IngredientPreparationTimestamp()
 }
+
+@Serializable
+data class IngredientAddedEvent(
+    override val identifier: IngredientId,
+    override val final: Boolean = false
+) : IngredientEvent(){
+    val status = IngredientStatus.ADDED
+    val addedTimestamp = IngredientAddedTimestamp()
+}

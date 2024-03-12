@@ -14,8 +14,8 @@ class IngredientViewTest {
     private val ingredientName = IngredientName("ingredientName")
     private val quantity = IngredientQuantity(10)
     private val inputTime = IngredientInputTime(BigDecimal.TEN)
-    private val emptyIngredientPreparationList = IngredientPreparationList()
-    private val ingredientPreparationTimestamp = IngredientPreparationTimestamp()
+    private val ingredientPreparationTimestampList = mutableListOf<IngredientPreparationTimestamp>()
+    private val ingredientAddedTimestampList = mutableListOf<IngredientAddedTimestamp>()
 
     @Test
     fun `should initialize ingredient`() {
@@ -63,6 +63,34 @@ class IngredientViewTest {
         with(ingredientView) {
             givenEvents (
                 listOf(initializedEvent, preparedEvent)
+            ) thenState ingredientViewState
+        }
+    }
+
+    @Test
+    fun `should add ingredient`() {
+        val initializedEvent = IngredientInitializedEvent(
+            ingredientId,
+            gameId,
+            ingredientName,
+            quantity,
+            inputTime
+        )
+        val preparedEvent = IngredientPreparedEvent(ingredientId)
+        val addedEvent = IngredientAddedEvent(ingredientId)
+        val ingredientViewState = IngredientViewState(
+            ingredientId,
+            gameId,
+            ingredientName,
+            quantity,
+            inputTime,
+            IngredientStatus.ADDED,
+            IngredientPreparationList(listOf(preparedEvent.preparationTimeStamp).toImmutableList()),
+            IngredientAddedList(listOf(addedEvent.addedTimestamp).toImmutableList())
+        )
+        with(ingredientView) {
+            givenEvents (
+                listOf(initializedEvent, preparedEvent, addedEvent)
             ) thenState ingredientViewState
         }
     }

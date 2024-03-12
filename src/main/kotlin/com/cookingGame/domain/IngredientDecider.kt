@@ -43,6 +43,25 @@ fun ingredientDecider(): IngredientDecider = Decider(
                 )
             )
             else flowOf(IngredientPreparedEvent(ingredientCommand.identifier))
+
+            is AddIngredientCommand -> if (ingredient == null) flowOf(
+                IngredientDoesNotExistEvent(
+                    ingredientCommand.identifier,
+                    Error.IngredientDoesNotExist.reason
+                )
+            )
+            else if (IngredientStatus.PREPARED != ingredient.status) flowOf(
+                IngredientNotInCorrectStateEvent(
+                    ingredientCommand.identifier,
+                    Error.IngredientNotInCorrectState.reason,
+                    ingredient.status
+                )
+            )
+            else flowOf(
+                IngredientAddedEvent(
+                    ingredientCommand.identifier,
+                )
+            )
         }
     },
     evolve = { ingredient, ingredientEvent ->
@@ -61,6 +80,7 @@ fun ingredientDecider(): IngredientDecider = Decider(
             is IngredientDoesNotExistEvent -> ingredient
             is IngredientNotInCorrectStateEvent -> ingredient
             is IngredientPreparedEvent -> ingredient?.copy(status = ingredientEvent.status ,preparationTimestamps = addIngredientPreparationTimeStamp(ingredient.preparationTimestamps, ingredientEvent.preparationTimeStamp))
+            is IngredientAddedEvent -> ingredient?.copy(status = IngredientStatus.ADDED, addedTimestamp = addIngredientAddedTimeStamp(ingredient.addedTimestamp, ingredientEvent.addedTimestamp))
         }
     }
 )
@@ -72,7 +92,8 @@ data class Ingredient(
     val quantity: IngredientQuantity,
     val inputTime: IngredientInputTime,
     val status: IngredientStatus,
-    val preparationTimestamps: IngredientPreparationList = IngredientPreparationList()
+    val preparationTimestamps: IngredientPreparationList = IngredientPreparationList(),
+    val addedTimestamp: IngredientAddedList = IngredientAddedList()
 )
 
 private fun addIngredientPreparationTimeStamp(
@@ -83,4 +104,14 @@ private fun addIngredientPreparationTimeStamp(
         add(ingredientPreparationTimestamp)
     }
     return IngredientPreparationList(newList.toImmutableList())
+}
+
+private fun addIngredientAddedTimeStamp(
+    currentList: IngredientAddedList,
+    ingredientAddedTimestamp: IngredientAddedTimestamp
+): IngredientAddedList {
+    val newList = currentList.value.toMutableList().apply {
+        add(ingredientAddedTimestamp)
+    }
+    return IngredientAddedList(newList.toImmutableList())
 }

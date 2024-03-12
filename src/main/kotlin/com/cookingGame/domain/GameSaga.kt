@@ -68,6 +68,7 @@ fun gameSaga(gameClient: GameClient, ingredientRepository: IngredientRepository)
             }
 
             is IngredientPreparationCompletedEvent -> emptyFlow()
+            is IngredientAddedEvent -> TODO()
         }
     }
 )

@@ -81,3 +81,8 @@ data class CompleteIngredientPreparationCommand(
     override val identifier: GameId,
     val ingredientId: IngredientId,
 ) : GameCommand()
+
+@Serializable
+data class AddIngredientCommand(
+    override val identifier: IngredientId,
+) : IngredientCommand()

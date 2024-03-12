@@ -22,6 +22,7 @@ fun ingredientView() = IngredientView(
             is IngredientDoesNotExistEvent -> ingredientViewState
             is IngredientNotInCorrectStateEvent -> ingredientViewState
             is IngredientPreparedEvent -> ingredientViewState?.copy(status = ingredientEvent.status ,preparationTimestamps = addIngredientPreparationTimeStamp(ingredientViewState.preparationTimestamps, ingredientEvent.preparationTimeStamp))
+            is IngredientAddedEvent -> ingredientViewState?.copy(status = IngredientStatus.ADDED, addedTimestamp = addIngredientAddedTimeStamp(ingredientViewState.addedTimestamp, ingredientEvent.addedTimestamp))
         }
     }
 )
@@ -32,7 +33,8 @@ data class IngredientViewState(
     val quantity: IngredientQuantity,
     val inputTime: IngredientInputTime,
     val status: IngredientStatus,
-    val preparationTimestamps: IngredientPreparationList = IngredientPreparationList()
+    val preparationTimestamps: IngredientPreparationList = IngredientPreparationList(),
+    val addedTimestamp: IngredientAddedList = IngredientAddedList()
 )
 
 private fun addIngredientPreparationTimeStamp(
@@ -43,4 +45,14 @@ private fun addIngredientPreparationTimeStamp(
         add(ingredientPreparationTimestamp)
     }
     return IngredientPreparationList(newList.toImmutableList())
+}
+
+private fun addIngredientAddedTimeStamp(
+    currentList: IngredientAddedList,
+    ingredientAddedTimestamp: IngredientAddedTimestamp
+): IngredientAddedList {
+    val newList = currentList.value.toMutableList().apply {
+        add(ingredientAddedTimestamp)
+    }
+    return IngredientAddedList(newList.toImmutableList())
 }
