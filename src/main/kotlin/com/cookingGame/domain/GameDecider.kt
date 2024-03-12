@@ -232,6 +232,23 @@ fun gameDecider() = GameDecider(
                     gameCommand.ingredientId
                 )
             )
+
+            is StopGameCommand -> if (game == null) flowOf(
+                GameDoesNotExistEvent(
+                    gameCommand.identifier,
+                    Error.GameDoesNotExist.reason,
+                    true
+                )
+            )
+            else if (GameStatus.STARTED != game.status) flowOf(
+                GameNotInCorrectState(
+                    gameCommand.identifier,
+                    Error.GameNotInCorrectState.reason,
+                    game.status,
+                    true
+                )
+            )
+            else GameTimerManager.stopTimer(gameCommand.identifier)
         }
     },
     evolve = { game, gameEvent ->
@@ -309,6 +326,8 @@ fun gameDecider() = GameDecider(
                     )
                 }
             }
+
+            is GameStoppedEvent -> game
         }
     }
 )
@@ -357,9 +376,10 @@ object GameTimerManager {
         channel.consumeAsFlow().collect { emit(it) }
     }
 
-    fun stopTimer(gameId: GameId) {
+    fun stopTimer(gameId: GameId) = flow{
         LOGGER.debug("Attempting to stop timer for gameId: $gameId, ${activeTimers[gameId]}")
         activeTimers[gameId]?.cancel() ?: LOGGER.error("Timer not found: $gameId")
         LOGGER.debug("Timer stopped: $gameId, ${activeTimers[gameId]}")
+        emit(GameStoppedEvent(gameId))
     }
 }

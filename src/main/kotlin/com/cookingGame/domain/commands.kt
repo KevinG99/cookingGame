@@ -88,7 +88,12 @@ data class AddIngredientCommand(
 ) : IngredientCommand()
 
 @Serializable
-    data class AddIngredientToGameCommand(
+data class AddIngredientToGameCommand(
     override val identifier: GameId,
     val ingredientId: IngredientId,
+) : GameCommand()
+
+@Serializable
+data class StopGameCommand(
+    override val identifier: GameId,
 ) : GameCommand()

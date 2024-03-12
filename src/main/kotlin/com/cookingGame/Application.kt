@@ -50,7 +50,7 @@ fun main(): Unit = SuspendApp {
         val aggregate = aggregate(
             gameDecider(),
             ingredientDecider(),
-            gameSaga(gameClient, ingredientRepository),
+            gameSaga(gameClient, ingredientRepository, gameRepository),
             aggregateEventRepository
         )
 

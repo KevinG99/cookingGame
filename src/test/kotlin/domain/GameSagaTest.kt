@@ -1,6 +1,7 @@
 package domain
 
 import com.cookingGame.adapter.clients.GameClient
+import com.cookingGame.adapter.persistence.GameRepository
 import com.cookingGame.adapter.persistence.IngredientRepository
 import com.cookingGame.domain.*
 import expectActions
@@ -17,7 +18,8 @@ import java.math.BigDecimal
 class GameSagaTest {
     private val mockGameClient = mockk<GameClient>(relaxed = true)
     private val mockIngredientRepository = mockk<IngredientRepository>()
-    private val gameSaga = gameSaga(mockGameClient, mockIngredientRepository)
+    private val mockGameRepository = mockk<GameRepository>()
+    private val gameSaga = gameSaga(mockGameClient, mockIngredientRepository, mockGameRepository)
     private val gameId = GameId()
     private val gameName = GameName("something off")
     private val ingredientList = IngredientList(
@@ -50,6 +52,14 @@ class GameSagaTest {
         IngredientQuantity(2),
         ingredientInputTime,
         IngredientStatus.PREPARED
+    )
+    private val gameViewState = GameViewState(
+        gameId,
+        gameName,
+        GameStatus.CREATED,
+        ingredientList,
+        gameDuration,
+        gameStartTime,
     )
 
     @BeforeEach
@@ -179,6 +189,23 @@ class GameSagaTest {
             whenActionResult(
                 ingredientAddedEvent
             ) expectActions listOf(addIngredientToGameCommand)
+        }
+    }
+
+
+    @Test
+    fun `should stop gameCommand`() = runTest {
+        val newIngredientItemList = ingredientList.value.map { it.copy(status = IngredientStatus.ADDED) }
+        val newGameViewState = gameViewState.copy(
+            ingredients = IngredientList(newIngredientItemList.toImmutableList())
+        )
+        coEvery { mockGameRepository.findById(gameId.value.toString()) } returns newGameViewState
+        val gameIngredientAdditionCompletedEvent = GameIngredientAdditionCompletedEvent(gameId, ingredientId)
+        val stopGameCommand = StopGameCommand(gameId)
+        with(gameSaga) {
+            whenActionResult(
+                gameIngredientAdditionCompletedEvent
+            ) expectActions listOf(stopGameCommand)
         }
     }
 }

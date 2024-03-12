@@ -451,4 +451,41 @@ class GameDeciderTest {
             } thenEvents listOf(gameDoesNotContainIngredientEvent)
         }
     }
+
+    @Test
+    fun `should stop game`() = runTest {
+        val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
+        val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
+        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val stopGameCommand = StopGameCommand(gameId)
+        val gameStoppedEvent = GameStoppedEvent(gameId)
+        with(gameDecider) {
+            givenEvents(listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent))  {
+                whenCommand(stopGameCommand)
+            } thenEvents listOf(gameStoppedEvent)
+        }
+    }
+
+    @Test
+    fun `should stop game Game_DoesNotExist`() = runTest {
+        val stopGameCommand = StopGameCommand(gameId)
+        val gameDoesNotExistEvent = GameDoesNotExistEvent(gameId, Error.GameDoesNotExist.reason, true)
+        with(gameDecider) {
+            givenEvents(emptyList())  {
+                whenCommand(stopGameCommand)
+            } thenEvents listOf(gameDoesNotExistEvent)
+        }
+    }
+
+    @Test
+    fun `should stop game Game_NotInCorrectState`() = runTest {
+        val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
+        val stopGameCommand = StopGameCommand(gameId)
+        val gameNotInCorrectStateEvent = GameNotInCorrectState(gameId, Error.GameNotInCorrectState.reason, GameStatus.CREATED, true)
+        with(gameDecider) {
+            givenEvents(listOf(gameCreatedEvent))  {
+                whenCommand(stopGameCommand)
+            } thenEvents listOf(gameNotInCorrectStateEvent)
+        }
+    }
 }

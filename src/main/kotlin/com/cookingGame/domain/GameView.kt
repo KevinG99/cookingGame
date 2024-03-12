@@ -75,6 +75,8 @@ fun gameView() = GameView(
                     )
                 )
             }
+
+            is GameStoppedEvent -> gameViewState?.copy(status = gameEvent.status)
         }
     }
 )

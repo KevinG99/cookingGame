@@ -48,7 +48,8 @@ class GameService {
         }
     }.onCompletion { activeTimers.remove(gameId) }
 
-    fun stopGameTimer(gameId: GameId) {
+    fun stopGameTimer(gameId: GameId) : Flow<GameCommand> = flow {
         activeTimers[gameId]?.cancel(CancellationException("Game timer stopped"))
+        emit(StopGameCommand(gameId))
     }
 }

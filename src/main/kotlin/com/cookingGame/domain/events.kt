@@ -196,3 +196,11 @@ data class GameIngredientAdditionCompletedEvent(
     val ingredientStatus = IngredientStatus.ADDED
     val additionCompletedTimestamp = IngredientAddedTimestamp()
 }
+
+@Serializable
+data class GameStoppedEvent(
+    override val identifier: GameId,
+    override val final: Boolean = false
+) : GameEvent(){
+    val status = GameStatus.STOPPED
+}

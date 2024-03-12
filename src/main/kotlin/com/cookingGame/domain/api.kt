@@ -114,7 +114,7 @@ value class GameName(val value: String)
 
 @Serializable
 enum class GameStatus {
-    CREATED, PREPARED, STARTED, GAME_ENDED, GAME_OVER, COMPLETED
+    CREATED, PREPARED, STARTED, STOPPED, GAME_ENDED,GAME_OVER, COMPLETED
 }
 
 @Serializable
