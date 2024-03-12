@@ -41,6 +41,7 @@ class GameSagaTest {
     private val ingredientQuantity = IngredientQuantity(2)
     private val ingredientInputTime = IngredientInputTime(BigDecimal.TEN)
     private val ingredientPreparationTimestampList = mutableListOf<IngredientPreparationTimestamp>()
+    private val ingredientAddedTimestampList = mutableListOf<IngredientAddedTimestamp>()
 
     private val preparedIngredientViewState = IngredientViewState(
         ingredientId,
@@ -160,6 +161,24 @@ class GameSagaTest {
             whenActionResult(
                 ingredientPreparedEvent
             ) expectActions listOf()
+        }
+    }
+
+    @Test
+    fun `should add ingredient to game`() = runTest {
+        ingredientAddedTimestampList.add(IngredientAddedTimestamp())
+        val newPreparedIngredientViewState = preparedIngredientViewState.copy(
+            addedTimestamps = IngredientAddedList(
+                ingredientAddedTimestampList.toImmutableList()
+            )
+        )
+        coEvery { mockIngredientRepository.findById(ingredientId.value.toString()) } returns newPreparedIngredientViewState
+        val ingredientAddedEvent = IngredientAddedEvent(ingredientId)
+        val addIngredientToGameCommand = AddIngredientToGameCommand(gameId, ingredientId)
+        with(gameSaga) {
+            whenActionResult(
+                ingredientAddedEvent
+            ) expectActions listOf(addIngredientToGameCommand)
         }
     }
 }

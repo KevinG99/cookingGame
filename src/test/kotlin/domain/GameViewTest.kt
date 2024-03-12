@@ -31,6 +31,7 @@ class GameViewTest {
     private val gameIsNotSuccess = Success(false)
     private val gameScore = GameScore(100)
 
+
     @Test
     fun testGameCreated(): Unit = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
@@ -59,7 +60,14 @@ class GameViewTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
-        val gameViewState = GameViewState(gameId, gameName, gameStartedEvent.status, ingredientList, gameDuration, gameStartedEvent.startTime)
+        val gameViewState = GameViewState(
+            gameId,
+            gameName,
+            gameStartedEvent.status,
+            ingredientList,
+            gameDuration,
+            gameStartedEvent.startTime
+        )
         with(gameView) {
             givenEvents(
                 listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent)
@@ -73,7 +81,14 @@ class GameViewTest {
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
         val gameTimeElapsedEvent = GameTimeElapsedEvent(gameId)
-        val gameViewState = GameViewState(gameId, gameName, gameTimeElapsedEvent.status, ingredientList, gameDuration, gameStartedEvent.startTime)
+        val gameViewState = GameViewState(
+            gameId,
+            gameName,
+            gameTimeElapsedEvent.status,
+            ingredientList,
+            gameDuration,
+            gameStartedEvent.startTime
+        )
         with(gameView) {
             givenEvents(
                 listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent, gameTimeElapsedEvent)
@@ -87,7 +102,14 @@ class GameViewTest {
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
         val gameTimeElapsedEvent = GameTimeElapsedEvent(gameId)
-        val gameViewState = GameViewState(gameId, gameName, gameTimeElapsedEvent.status, ingredientList, gameDuration, gameStartedEvent.startTime)
+        val gameViewState = GameViewState(
+            gameId,
+            gameName,
+            gameTimeElapsedEvent.status,
+            ingredientList,
+            gameDuration,
+            gameStartedEvent.startTime
+        )
         with(gameView) {
             givenEvents(
                 listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent, gameTimeElapsedEvent)
@@ -96,13 +118,22 @@ class GameViewTest {
     }
 
     @Test
-    fun testGameEnded(): Unit = runTest  {
+    fun testGameEnded(): Unit = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
         val gameTimeElapsedEvent = GameTimeElapsedEvent(gameId)
         val gameEndedEvent = GameEndedEvent(gameId, gameScore)
-        val gameViewState = GameViewState(gameId, gameName, gameEndedEvent.status, ingredientList, gameDuration, gameStartedEvent.startTime, score = gameEndedEvent.score, completionTime = gameEndedEvent.completionTime)
+        val gameViewState = GameViewState(
+            gameId,
+            gameName,
+            gameEndedEvent.status,
+            ingredientList,
+            gameDuration,
+            gameStartedEvent.startTime,
+            score = gameEndedEvent.score,
+            completionTime = gameEndedEvent.completionTime
+        )
         with(gameView) {
             givenEvents(
                 listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent, gameTimeElapsedEvent, gameEndedEvent)
@@ -110,8 +141,24 @@ class GameViewTest {
         }
     }
 
+    // is IngredientPreparationCompletedEvent -> gameViewState?.let { state ->
+    //                state.copy(
+    //                    ingredients = IngredientList(
+    //                        state.ingredients?.value?.map { ingredientItem ->
+    //                            if (ingredientItem.id == gameEvent.ingredientId) {
+    //                                ingredientItem.copy(
+    //                                    status = gameEvent.ingredientStatus,
+    //                                    preparationCompleteTime = gameEvent.preparationCompleteTime
+    //                                )
+    //                            } else ingredientItem
+    //                        }?.toImmutableList()!!
+    //                    )
+    //                )
+    //            }
     @Test
-    fun `should Update Game Ingredient`(): Unit = runTest {
+    fun `should Update Game Ingredient to IngredientStatus_PREPARED`(): Unit = runTest {
+        val ingredientPreparationCompletedEvent =
+            IngredientPreparationCompletedEvent(gameId, ingredientList.value.first().id)
         val updatedIngredientList = IngredientList(
             listOf(
                 IngredientItem(
@@ -119,19 +166,57 @@ class GameViewTest {
                     ingredientList.value.first().name,
                     ingredientList.value.first().quantity,
                     ingredientList.value.first().inputTime,
-                    IngredientStatus.PREPARED
+                    IngredientStatus.PREPARED,
+                    preparationCompleteTime = ingredientPreparationCompletedEvent.preparationCompleteTime
                 )
             ).toImmutableList()
         )
-            val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
+        val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
+        val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
+        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameViewState =
+            GameViewState(gameId, gameName, gameStartedEvent.status, updatedIngredientList, gameDuration, gameStartedEvent.startTime)
+        with(gameView) {
+            givenEvents(
+                listOf(gameCreatedEvent, gamePreparedEvent,gameStartedEvent, ingredientPreparationCompletedEvent)
+            ) thenState gameViewState
+        }
+    }
+
+    @Test
+    fun `should Update Game Ingredient to IngredientStatus_ADDED`(): Unit = runTest {
+           val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
             val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
-            val gameIngredientUpdatedEvent = GameIngredientUpdatedEvent(gameId, ingredientList.value.first().id, IngredientStatus.PREPARED)
-            val gameViewState = GameViewState(gameId, gameName, gamePreparedEvent.status, updatedIngredientList, gameDuration)
+            val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+            val ingredientPreparationCompletedEvent =
+                IngredientPreparationCompletedEvent(gameId, ingredientList.value.first().id)
+            val gameIngredientAdditionCompletedEvent =
+                GameIngredientAdditionCompletedEvent(gameId, ingredientList.value.first().id)
+            val updatedIngredientList = IngredientList(
+                listOf(
+                    IngredientItem(
+                        ingredientList.value.first().id,
+                        ingredientList.value.first().name,
+                        ingredientList.value.first().quantity,
+                        ingredientList.value.first().inputTime,
+                        IngredientStatus.ADDED,
+                        preparationCompleteTime = ingredientPreparationCompletedEvent.preparationCompleteTime,
+                        additionCompleteTime = gameIngredientAdditionCompletedEvent.additionCompletedTimestamp
+                    )
+                ).toImmutableList()
+            )
+            val gameViewState =
+                GameViewState(gameId, gameName, gameStartedEvent.status, updatedIngredientList, gameDuration, gameStartedEvent.startTime)
             with(gameView) {
                 givenEvents(
-                    listOf(gameCreatedEvent, gamePreparedEvent, gameIngredientUpdatedEvent)
+                    listOf(
+                        gameCreatedEvent,
+                        gamePreparedEvent,
+                        gameStartedEvent,
+                        ingredientPreparationCompletedEvent,
+                        gameIngredientAdditionCompletedEvent
+                    )
                 ) thenState gameViewState
-
-        }
+            }
     }
 }

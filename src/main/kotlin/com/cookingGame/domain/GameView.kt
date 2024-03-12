@@ -17,11 +17,21 @@ fun gameView() = GameView(
                 gameEvent.status,
             )
 
-            is GamePreparedEvent -> gameViewState?.copy(status = gameEvent.status, ingredients = gameEvent.ingredients, gameDuration = gameEvent.gameDuration)
+            is GamePreparedEvent -> gameViewState?.copy(
+                status = gameEvent.status,
+                ingredients = gameEvent.ingredients,
+                gameDuration = gameEvent.gameDuration
+            )
+
             is GameStartedEvent -> gameViewState?.copy(status = gameEvent.status, startTime = gameEvent.startTime)
             is GameTimeElapsedEvent -> gameViewState?.copy(status = gameEvent.status)
-            is GameEndedEvent -> gameViewState?.copy(status = gameEvent.status,score = gameEvent.score, completionTime = gameEvent.completionTime)
-            is GameCompletedEvent -> gameViewState?.copy(status = gameEvent.status , isSuccess = gameEvent.isSuccess)
+            is GameEndedEvent -> gameViewState?.copy(
+                status = gameEvent.status,
+                score = gameEvent.score,
+                completionTime = gameEvent.completionTime
+            )
+
+            is GameCompletedEvent -> gameViewState?.copy(status = gameEvent.status, isSuccess = gameEvent.isSuccess)
             is GameErrorEvent -> gameViewState
             is GameIngredientUpdatedEvent -> {
                 gameViewState?.let { state ->
@@ -32,20 +42,38 @@ fun gameView() = GameView(
                             }?.toImmutableList()!!
                         )
                     )
-                }}
-
-            is IngredientPreparationCompletedEvent -> {
-                gameViewState?.let { state ->
-                    state.copy(
-                        ingredients = IngredientList(
-                            state.ingredients?.value?.map{ ingredientItem ->
-                                if (ingredientItem.id == gameEvent.ingredientId) {
-                                    ingredientItem.copy(status = gameEvent.ingredientStatus, preparationCompleteTime = gameEvent.preparationCompleteTime)
-                                } else ingredientItem
-                            }?.toImmutableList()!!
-                        )
-                    )
                 }
+            }
+
+            is IngredientPreparationCompletedEvent -> gameViewState?.let { state ->
+                state.copy(
+                    ingredients = IngredientList(
+                        state.ingredients?.value?.map { ingredientItem ->
+                            if (ingredientItem.id == gameEvent.ingredientId) {
+                                ingredientItem.copy(
+                                    status = gameEvent.ingredientStatus,
+                                    preparationCompleteTime = gameEvent.preparationCompleteTime
+                                )
+                            } else ingredientItem
+                        }?.toImmutableList()!!
+                    )
+                )
+            }
+
+
+            is GameIngredientAdditionCompletedEvent -> gameViewState?.let { state ->
+                state.copy(
+                    ingredients = IngredientList(
+                        state.ingredients?.value?.map { ingredientItem ->
+                            if (ingredientItem.id == gameEvent.ingredientId) {
+                                ingredientItem.copy(
+                                    status = gameEvent.ingredientStatus,
+                                    additionCompleteTime = gameEvent.additionCompletedTimestamp
+                                )
+                            } else ingredientItem
+                        }?.toImmutableList()!!
+                    )
+                )
             }
         }
     }

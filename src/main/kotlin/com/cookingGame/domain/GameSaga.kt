@@ -57,18 +57,24 @@ fun gameSaga(gameClient: GameClient, ingredientRepository: IngredientRepository)
             is GameDoesNotContainIngredientEvent -> emptyFlow()
             is IngredientDoesNotExistEvent -> emptyFlow()
             is IngredientNotInCorrectStateEvent -> emptyFlow()
-            is IngredientPreparedEvent -> {
-                flow {
-                    val ingredientViewState = ingredientRepository.findById(e.identifier.value.toString()) ?: return@flow
-                    if (ingredientViewState.preparationTimestamps.value.size >= ingredientViewState.quantity.value) {
-                        emit(CompleteIngredientPreparationCommand(ingredientViewState.gameId, e.identifier))
-                    }
-                    return@flow
+            is IngredientPreparedEvent -> flow {
+                val ingredientViewState =
+                    ingredientRepository.findById(e.identifier.value.toString()) ?: return@flow
+                if (ingredientViewState.preparationTimestamps.value.size >= ingredientViewState.quantity.value) {
+                    emit(CompleteIngredientPreparationCommand(ingredientViewState.gameId, e.identifier))
                 }
+                return@flow
             }
 
             is IngredientPreparationCompletedEvent -> emptyFlow()
-            is IngredientAddedEvent -> TODO()
+            is IngredientAddedEvent -> flow {
+                val ingredientViewState = ingredientRepository.findById(e.identifier.value.toString()) ?: return@flow
+                //Todo: maybe check for how many ingredients have been added or somethign
+                emit(AddIngredientToGameCommand(ingredientViewState.gameId, e.identifier))
+                return@flow
+            }
+
+            is GameIngredientAdditionCompletedEvent -> emptyFlow()
         }
     }
 )

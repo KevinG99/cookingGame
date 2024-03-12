@@ -202,6 +202,36 @@ fun gameDecider() = GameDecider(
                     gameCommand.ingredientId
                 )
             )
+
+            is AddIngredientToGameCommand -> if (game == null) flowOf(
+                GameDoesNotExistEvent(
+                    gameCommand.identifier,
+                    Error.GameDoesNotExist.reason,
+                    true
+                )
+            )
+            else if (GameStatus.STARTED != game.status) flowOf(
+                GameNotInCorrectState(
+                    gameCommand.identifier,
+                    Error.GameNotInCorrectState.reason,
+                    game.status,
+                    true
+                )
+            )
+            else if (game.ingredients?.value?.none { it.id == gameCommand.ingredientId } == true) flowOf(
+                GameDoesNotContainIngredientEvent(
+                    gameCommand.identifier,
+                    gameCommand.ingredientId,
+                    Error.GameDoesNotHaveIngredient.reason,
+                    true
+                )
+            )
+            else flowOf(
+                GameIngredientAdditionCompletedEvent(
+                    gameCommand.identifier,
+                    gameCommand.ingredientId
+                )
+            )
         }
     },
     evolve = { game, gameEvent ->
@@ -250,9 +280,29 @@ fun gameDecider() = GameDecider(
                 game?.let { state ->
                     state.copy(
                         ingredients = IngredientList(
-                            state.ingredients?.value?.map{ ingredientItem ->
+                            state.ingredients?.value?.map { ingredientItem ->
                                 if (ingredientItem.id == gameEvent.ingredientId) {
-                                    ingredientItem.copy(status = gameEvent.ingredientStatus, preparationCompleteTime = gameEvent.preparationCompleteTime)
+                                    ingredientItem.copy(
+                                        status = gameEvent.ingredientStatus,
+                                        preparationCompleteTime = gameEvent.preparationCompleteTime
+                                    )
+                                } else ingredientItem
+                            }?.toImmutableList()!!
+                        )
+                    )
+                }
+            }
+
+            is GameIngredientAdditionCompletedEvent -> {
+                game?.let { state ->
+                    state.copy(
+                        ingredients = IngredientList(
+                            state.ingredients?.value?.map { ingredientItem ->
+                                if (ingredientItem.id == gameEvent.ingredientId) {
+                                    ingredientItem.copy(
+                                        status = gameEvent.ingredientStatus,
+                                        additionCompleteTime = gameEvent.additionCompletedTimestamp
+                                    )
                                 } else ingredientItem
                             }?.toImmutableList()!!
                         )

@@ -66,7 +66,8 @@ data class IngredientItem(
     val quantity: IngredientQuantity,
     val inputTime: IngredientInputTime,
     val status: IngredientStatus = IngredientStatus.UNINITIALIZED,
-    val preparationCompleteTime : IngredientPreparationTimestamp? = null
+    val preparationCompleteTime : IngredientPreparationTimestamp? = null,
+    val additionCompleteTime: IngredientAddedTimestamp? = null
 )
 
 @Serializable

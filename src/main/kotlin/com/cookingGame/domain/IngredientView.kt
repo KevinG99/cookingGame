@@ -22,7 +22,7 @@ fun ingredientView() = IngredientView(
             is IngredientDoesNotExistEvent -> ingredientViewState
             is IngredientNotInCorrectStateEvent -> ingredientViewState
             is IngredientPreparedEvent -> ingredientViewState?.copy(status = ingredientEvent.status ,preparationTimestamps = addIngredientPreparationTimeStamp(ingredientViewState.preparationTimestamps, ingredientEvent.preparationTimeStamp))
-            is IngredientAddedEvent -> ingredientViewState?.copy(status = IngredientStatus.ADDED, addedTimestamp = addIngredientAddedTimeStamp(ingredientViewState.addedTimestamp, ingredientEvent.addedTimestamp))
+            is IngredientAddedEvent -> ingredientViewState?.copy(status = IngredientStatus.ADDED, addedTimestamps = addIngredientAddedTimeStamp(ingredientViewState.addedTimestamps, ingredientEvent.addedTimestamp))
         }
     }
 )
@@ -34,7 +34,7 @@ data class IngredientViewState(
     val inputTime: IngredientInputTime,
     val status: IngredientStatus,
     val preparationTimestamps: IngredientPreparationList = IngredientPreparationList(),
-    val addedTimestamp: IngredientAddedList = IngredientAddedList()
+    val addedTimestamps: IngredientAddedList = IngredientAddedList()
 )
 
 private fun addIngredientPreparationTimeStamp(
