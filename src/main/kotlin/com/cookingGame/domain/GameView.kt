@@ -33,6 +33,20 @@ fun gameView() = GameView(
                         )
                     )
                 }}
+
+            is IngredientPreparationCompletedEvent -> {
+                gameViewState?.let { state ->
+                    state.copy(
+                        ingredients = IngredientList(
+                            state.ingredients?.value?.map{ ingredientItem ->
+                                if (ingredientItem.id == gameEvent.ingredientId) {
+                                    ingredientItem.copy(status = gameEvent.ingredientStatus, preparationCompleteTime = gameEvent.preparationCompleteTime)
+                                } else ingredientItem
+                            }?.toImmutableList()!!
+                        )
+                    )
+                }
+            }
         }
     }
 )

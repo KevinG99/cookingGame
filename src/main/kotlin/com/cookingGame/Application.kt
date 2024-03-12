@@ -36,6 +36,13 @@ fun main(): Unit = SuspendApp {
     resourceScope {
         val httpEnv = Env.Http()
         val connectionFactory: ConnectionFactory = pooledConnectionFactory(Env.R2DBCDataSource())
+        // ### Query Side - Event Streaming, Materialized Views and Sagas ###
+        val eventStreamProcessor = EventStreamProcessor(connectionFactory).apply { initSchema() }
+        val ingredientRepository = IngredientRepository(connectionFactory).apply { initSchema() }
+        val gameRepository = GameRepository(connectionFactory).apply { initSchema() }
+        val materializedViewStateRepository =
+            MaterializedViewStateRepositoryImpl(gameRepository, ingredientRepository)
+
         // ### Command Side - Event Sourcing ###
         val gameClient = GameClient()
         val eventStore = EventStore(connectionFactory).apply { initSchema() }
@@ -43,15 +50,9 @@ fun main(): Unit = SuspendApp {
         val aggregate = aggregate(
             gameDecider(),
             ingredientDecider(),
-            gameSaga(gameClient),
+            gameSaga(gameClient, ingredientRepository),
             aggregateEventRepository
         )
-        // ### Query Side - Event Streaming, Materialized Views and Sagas ###
-        val eventStreamProcessor = EventStreamProcessor(connectionFactory).apply { initSchema() }
-        val ingredientRepository = IngredientRepository(connectionFactory).apply { initSchema() }
-        val gameRepository = GameRepository(connectionFactory).apply { initSchema() }
-        val materializedViewStateRepository =
-            MaterializedViewStateRepositoryImpl(gameRepository, ingredientRepository)
 
         @Suppress("UNUSED_VARIABLE")
         val materializedView = materializedView(

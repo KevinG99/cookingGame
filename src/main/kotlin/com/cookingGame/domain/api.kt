@@ -65,7 +65,8 @@ data class IngredientItem(
     val name: IngredientName,
     val quantity: IngredientQuantity,
     val inputTime: IngredientInputTime,
-    val status: IngredientStatus? = null
+    val status: IngredientStatus = IngredientStatus.UNINITIALIZED,
+    val preparationCompleteTime : IngredientPreparationTimestamp? = null
 )
 
 @Serializable
@@ -83,7 +84,7 @@ value class IngredientPreparationList(@Serializable(with = ImmutableListSerializ
 
 @Serializable
 enum class IngredientStatus {
-    INITIALIZED, PREPARED, ADDED
+    UNINITIALIZED, INITIALIZED, PREPARED, ADDED
 }
 
 @Serializable

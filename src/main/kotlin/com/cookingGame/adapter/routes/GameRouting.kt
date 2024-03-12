@@ -39,6 +39,20 @@ fun Application.cookingGameRouting(
         get("/ingredients") {
             // TODO
         }
+        get("ingredient/{id}") {
+            try {
+                val ingredient = ingredientRepository.findById(call.parameters["id"] ?: throw IllegalArgumentException("Id is missing"))
+                if (ingredient != null) {
+                    call.respond(ingredient)
+                } else {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            } catch (e: Exception) {
+                LOGGER.error("Error: ${e.message}", e)
+                call.respond(HttpStatusCode.BadRequest)
+            }
+        }
+
         get("/games") {
             try {
                 val games = gameRepository.findAll().toList()

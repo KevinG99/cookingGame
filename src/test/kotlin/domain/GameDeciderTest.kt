@@ -348,5 +348,55 @@ class GameDeciderTest {
         }
     }
 
+    @Test
+    fun `should complete ingredient preparation`() = runTest {
+        val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
+        val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
+        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val completeIngredientPreparationCommand = CompleteIngredientPreparationCommand(gameId, ingredientList.value.first().id)
+        val ingredientPreparationCompletedEvent = IngredientPreparationCompletedEvent(gameId, ingredientList.value.first().id)
+        with(gameDecider) {
+            givenEvents(listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent))  {
+                whenCommand(completeIngredientPreparationCommand)
+            } thenEvents listOf(ingredientPreparationCompletedEvent)
+        }
+    }
 
+    @Test
+    fun `should complete ingredient preparation Game_DoesNotExist`() = runTest {
+        val completeIngredientPreparationCommand = CompleteIngredientPreparationCommand(gameId, IngredientId())
+        val gameDoesNotExistEvent = GameDoesNotExistEvent(gameId, Error.GameDoesNotExist.reason, true)
+        with(gameDecider) {
+            givenEvents(emptyList())  {
+                whenCommand(completeIngredientPreparationCommand)
+            } thenEvents listOf(gameDoesNotExistEvent)
+        }
+    }
+
+    @Test
+    fun `should complete ingredient preparation Game_NotInCorrectState`() = runTest {
+        val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
+        val completeIngredientPreparationCommand = CompleteIngredientPreparationCommand(gameId, IngredientId())
+        val gameNotInCorrectStateEvent = GameNotInCorrectState(gameId, Error.GameNotInCorrectState.reason, GameStatus.CREATED, true)
+        with(gameDecider) {
+            givenEvents(listOf(gameCreatedEvent))  {
+                whenCommand(completeIngredientPreparationCommand)
+            } thenEvents listOf(gameNotInCorrectStateEvent)
+        }
+    }
+
+    @Test
+    fun `should complete ingredient preparation Game_DoesNotContainIngredient`() = runTest {
+        val newIngredientId = IngredientId()
+        val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
+        val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
+        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val completeIngredientPreparationCommand = CompleteIngredientPreparationCommand(gameId, newIngredientId)
+        val gameDoesNotContainIngredientEvent = GameDoesNotContainIngredientEvent(gameId, newIngredientId, Error.GameDoesNotHaveIngredient.reason, true)
+        with(gameDecider) {
+            givenEvents(listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent))  {
+                whenCommand(completeIngredientPreparationCommand)
+            } thenEvents listOf(gameDoesNotContainIngredientEvent)
+        }
+    }
 }
