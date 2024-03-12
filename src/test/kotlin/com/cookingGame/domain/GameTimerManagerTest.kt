@@ -1,34 +1,35 @@
 package com.cookingGame.domain
 
 import com.cookingGame.LOGGER
+import io.mockk.mockkObject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 class GameTimerManagerTest {
-    private lateinit var gameTimeManager: GameTimerManager
+    private val gameTimeManager = GameTimerManager
     private val gameId = GameId()
     private val gameName = GameName("Test game")
     private val gameStartTime = GameStartTime()
-    private val gameDuration = GameDuration(BigDecimal.valueOf(1))
+    private val gameDuration = GameDuration(BigDecimal.valueOf(2))
     private val game =
         Game(gameId, gameName, GameStatus.STARTED, gameDuration = gameDuration, startTime = gameStartTime)
 
     @BeforeEach
     fun setUp() {
-        gameTimeManager = GameTimerManager
+        mockkObject(GameTimerManager)
     }
 
     @Test
-    fun `startTimer should emit GameTimeElapsedEvent`() = runBlocking {
+    fun `startTimer should emit GameTimeElapsedEvent`() = runTest {
         val events = mutableListOf<GameEvent>()
         gameTimeManager.startTimer(game).take(1).collect { gameEvent ->
             LOGGER.info(gameEvent.toString())
@@ -38,7 +39,7 @@ class GameTimerManagerTest {
     }
 
     @Test
-    fun `stopTimer should stop the game timer`() = runBlocking {
+    fun `stopTimer should stop the game timer`() = runTest {
         val events = mutableListOf<GameEvent>()
         val eventFlow = gameTimeManager.startTimer(game).take(1)
         println(Clock.System.now())
@@ -49,7 +50,8 @@ class GameTimerManagerTest {
 
         eventFlow.collect { gameEvent ->
             events.add(gameEvent)
-            assertFalse(events.any { it is GameTimeElapsedEvent })
+            LOGGER.info(events.toString())
+            assertTrue(events.isEmpty(), "Should not emit any GameTimeElapsedEvent")
         }
     }
 
@@ -106,6 +108,7 @@ class GameTimerManagerTest {
         }
 
         channel.close()
-        assertTrue(eventList.size ==1  && eventList.all { it is GameTimeElapsedEvent }, "Should have only one GameTimeElapsedEvent")
+        val expected = listOf(GameTimeElapsedEvent(game.id))
+        assertTrue(eventList.size ==1  && eventList.all { it is GameTimeElapsedEvent }, "expect: $expected but was: $eventList")
     }
 }

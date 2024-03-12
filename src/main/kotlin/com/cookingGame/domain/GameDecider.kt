@@ -248,7 +248,10 @@ fun gameDecider() = GameDecider(
                     true
                 )
             )
-            else GameTimerManager.stopTimer(gameCommand.identifier)
+            else {
+                GameTimerManager.stopTimer(gameCommand.identifier)
+                flowOf(GameStoppedEvent(gameCommand.identifier))
+            }
         }
     },
     evolve = { game, gameEvent ->
@@ -376,10 +379,9 @@ object GameTimerManager {
         channel.consumeAsFlow().collect { emit(it) }
     }
 
-    fun stopTimer(gameId: GameId) = flow{
+    fun stopTimer(gameId: GameId) {
         LOGGER.debug("Attempting to stop timer for gameId: $gameId, ${activeTimers[gameId]}")
         activeTimers[gameId]?.cancel() ?: LOGGER.error("Timer not found: $gameId")
         LOGGER.debug("Timer stopped: $gameId, ${activeTimers[gameId]}")
-        emit(GameStoppedEvent(gameId))
     }
 }
