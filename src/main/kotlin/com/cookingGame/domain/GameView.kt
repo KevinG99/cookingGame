@@ -1,6 +1,7 @@
 package com.cookingGame.domain
 
 import com.fraktalio.fmodel.domain.View
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.Serializable
 
 typealias GameView = View<GameViewState?, GameEvent?>
@@ -22,6 +23,16 @@ fun gameView() = GameView(
             is GameEndedEvent -> gameViewState?.copy(status = gameEvent.status,score = gameEvent.score, completionTime = gameEvent.completionTime)
             is GameCompletedEvent -> gameViewState?.copy(status = gameEvent.status , isSuccess = gameEvent.isSuccess)
             is GameErrorEvent -> gameViewState
+            is GameIngredientUpdatedEvent -> {
+                gameViewState?.let { state ->
+                    state.copy(
+                        ingredients = IngredientList(
+                            state.ingredients?.value?.map {
+                                if (it.id == gameEvent.ingredientId) it.copy(status = gameEvent.ingredientStatus) else it
+                            }?.toImmutableList()!!
+                        )
+                    )
+                }}
         }
     }
 )

@@ -127,3 +127,19 @@ data class IngredientAlreadyExistsEvent(
     override val reason: Reason,
     override val final: Boolean = false
 ) : IngredientErrorEvent()
+
+@Serializable
+data class GameDoesNotContainIngredientEvent(
+    override val identifier: GameId,
+    val ingredientId: IngredientId,
+    override val reason: Reason,
+    override val final: Boolean = false
+) : GameErrorEvent()
+
+@Serializable
+data class GameIngredientUpdatedEvent(
+    override val identifier: GameId,
+    val ingredientId: IngredientId,
+    val ingredientStatus: IngredientStatus,
+    override val final: Boolean = false
+) : GameEvent()

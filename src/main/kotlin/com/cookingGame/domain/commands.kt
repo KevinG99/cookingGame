@@ -63,3 +63,10 @@ data class InitalizeIngredientCommand(
     val quantity: IngredientQuantity,
     val inputTime: IngredientInputTime,
 ) : IngredientCommand()
+
+@Serializable
+data class UpdateGameIngredientCommand(
+    override val identifier: GameId,
+    val ingredientId: IngredientId,
+    val ingredientStatus: IngredientStatus
+) : GameCommand()

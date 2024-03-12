@@ -13,4 +13,5 @@ enum class Error(val reason: Reason) {
     GameDoesNotExist(Reason("Game does not exist")),
     GameNotInCorrectState(Reason("Game not in correct state")),
     IngredientAlreadyExists(Reason("Ingredient already exists")),
+    GameDoesNotHaveIngredient(Reason("Game does not have ingredient")),
 }

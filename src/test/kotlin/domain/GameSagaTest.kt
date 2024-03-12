@@ -82,6 +82,21 @@ class GameSagaTest {
             ) expectActions initalizeIngredientCommands
         }
     }
+
+    @Test
+    fun `should updateGameIngredientCommand`() = runTest {
+        val initializedIngredientEvent = IngredientInitializedEvent(
+            ingredientId,
+            gameId,
+            ingredientName,
+            ingredientQuantity,
+            ingredientInputTime
+        )
+        val updateGameIngredientCommand = UpdateGameIngredientCommand(gameId, initializedIngredientEvent.identifier, initializedIngredientEvent.status )
+        with(gameSaga) {
+            whenActionResult(
+                initializedIngredientEvent
+            ) expectActions listOf(updateGameIngredientCommand)
+        }
+    }
 }
-//<InitalizeIngredientCommand(identifier=IngredientId(value=96aa68c7-5b12-486a-a182-d41eb93fb1f8), gameId=GameId(value=b81a8880-9115-4e5d-bf93-e125d171870b), name=IngredientName(value=Test ingredient 1), quantity=IngredientQuantity(value=5), inputTime=IngredientInputTime(value=10))>
-//<InitalizeIngredientCommand(identifier=IngredientId(value=672cdb38-e2e1-446c-bda5-32de69978fd2), gameId=GameId(value=b81a8880-9115-4e5d-bf93-e125d171870b), name=IngredientName(value=Test ingredient 1), quantity=IngredientQuantity(value=5), inputTime=IngredientInputTime(value=10))>

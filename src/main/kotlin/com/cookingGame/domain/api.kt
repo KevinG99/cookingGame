@@ -65,6 +65,7 @@ data class IngredientItem(
     val name: IngredientName,
     val quantity: IngredientQuantity,
     val inputTime: IngredientInputTime,
+    val status: IngredientStatus? = null
 )
 
 @Serializable

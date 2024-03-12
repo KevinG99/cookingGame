@@ -2,6 +2,7 @@ package com.cookingGame.domain
 
 import com.cookingGame.LOGGER
 import com.fraktalio.fmodel.domain.Decider
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -140,6 +141,37 @@ fun gameDecider() = GameDecider(
                     )
                 )
             }
+
+            is UpdateGameIngredientCommand -> if (game == null) flowOf(
+                GameDoesNotExistEvent(
+                    gameCommand.identifier,
+                    Error.GameDoesNotExist.reason,
+                    true
+                )
+            )
+            else if (GameStatus.PREPARED != game.status) flowOf(
+                GameNotInCorrectState(
+                    gameCommand.identifier,
+                    Error.GameNotInCorrectState.reason,
+                    game.status,
+                    true
+                )
+            )
+            else if (game.ingredients?.value?.none { it.id == gameCommand.ingredientId } == true) flowOf(
+                GameDoesNotContainIngredientEvent(
+                    gameCommand.identifier,
+                    gameCommand.ingredientId,
+                    Error.GameDoesNotHaveIngredient.reason,
+                    true
+                )
+            )
+            else flowOf(
+                GameIngredientUpdatedEvent(
+                    gameCommand.identifier,
+                    gameCommand.ingredientId,
+                    gameCommand.ingredientStatus
+                )
+            )
         }
     },
     evolve = { game, gameEvent ->
@@ -166,15 +198,40 @@ fun gameDecider() = GameDecider(
                 score = gameEvent.score,
                 completionTime = gameEvent.completionTime
             )
+
             is GameCompletedEvent -> game?.copy(status = gameEvent.status, isSuccess = gameEvent.isSuccess)
             is GameAlreadyExistsEvent -> game
             is GameDoesNotExistEvent -> game
             is GameNotInCorrectState -> game
-        }
+            is GameIngredientUpdatedEvent -> {
+                game?.let { state ->
+                    state.copy(
+                        ingredients = IngredientList(
+                            state.ingredients?.value?.map {
+                                if (it.id == gameEvent.ingredientId) it.copy(status = gameEvent.ingredientStatus) else it
+                            }?.toImmutableList()!!
+                        )
+                    )
+                }
+            }
 
+            is GameDoesNotContainIngredientEvent -> game
+        }
     }
 )
 
+
+data class Game(
+    val id: GameId,
+    val name: GameName,
+    val status: GameStatus,
+    val gameDuration: GameDuration? = null,
+    val ingredients: IngredientList? = null,
+    val startTime: GameStartTime? = null,
+    val score: GameScore? = null,
+    val isSuccess: Success? = null,
+    val completionTime: GameCompletionTime? = null
+)
 
 object GameTimerManager {
     private val activeTimers = mutableMapOf<GameId, Job>()
@@ -188,7 +245,8 @@ object GameTimerManager {
             LOGGER.debug("Start time: ${game.startTime.value}")
             LOGGER.debug("End time: $endTime")
             val gameId = game.id
-            while (isActive && Clock.System.now() < endTime){}
+            while (isActive && Clock.System.now() < endTime) {
+            }
 
             if (isActive && Clock.System.now() > endTime) {
                 channel.send(GameTimeElapsedEvent(gameId))
@@ -212,15 +270,3 @@ object GameTimerManager {
         LOGGER.debug("Timer stopped: $gameId, ${activeTimers[gameId]}")
     }
 }
-
-data class Game(
-    val id: GameId,
-    val name: GameName,
-    val status: GameStatus,
-    val gameDuration: GameDuration? = null,
-    val ingredients: IngredientList? = null,
-    val startTime: GameStartTime? = null,
-    val score: GameScore? = null,
-    val isSuccess: Success? = null,
-    val completionTime: GameCompletionTime? = null
-)

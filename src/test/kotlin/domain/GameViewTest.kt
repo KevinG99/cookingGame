@@ -109,4 +109,29 @@ class GameViewTest {
             ) thenState gameViewState
         }
     }
+
+    @Test
+    fun `should Update Game Ingredient`(): Unit = runTest {
+        val updatedIngredientList = IngredientList(
+            listOf(
+                IngredientItem(
+                    ingredientList.value.first().id,
+                    ingredientList.value.first().name,
+                    ingredientList.value.first().quantity,
+                    ingredientList.value.first().inputTime,
+                    IngredientStatus.PREPARED
+                )
+            ).toImmutableList()
+        )
+            val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
+            val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
+            val gameIngredientUpdatedEvent = GameIngredientUpdatedEvent(gameId, ingredientList.value.first().id, IngredientStatus.PREPARED)
+            val gameViewState = GameViewState(gameId, gameName, gamePreparedEvent.status, updatedIngredientList, gameDuration)
+            with(gameView) {
+                givenEvents(
+                    listOf(gameCreatedEvent, gamePreparedEvent, gameIngredientUpdatedEvent)
+                ) thenState gameViewState
+
+        }
+    }
 }
