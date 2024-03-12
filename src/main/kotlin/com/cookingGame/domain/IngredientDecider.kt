@@ -1,6 +1,7 @@
 package com.cookingGame.domain
 
 import com.fraktalio.fmodel.domain.Decider
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 
@@ -8,7 +9,7 @@ typealias IngredientDecider = Decider<IngredientCommand?, Ingredient?, Ingredien
 
 fun ingredientDecider(): IngredientDecider = Decider(
     initialState = null,
-    decide = { ingredientCommand, ingredient  ->
+    decide = { ingredientCommand, ingredient ->
         when (ingredientCommand) {
             null -> emptyFlow()
             is InitalizeIngredientCommand -> if (ingredient == null) flowOf(
@@ -20,7 +21,28 @@ fun ingredientDecider(): IngredientDecider = Decider(
                     ingredientCommand.inputTime
                 )
             )
-            else flowOf(IngredientAlreadyExistsEvent(ingredientCommand.identifier, Reason("Ingredient already exists")))
+            else flowOf(
+                IngredientAlreadyExistsEvent(
+                    ingredientCommand.identifier,
+                    Error.IngredientAlreadyExists.reason,
+                    true
+                )
+            )
+
+            is PrepareIngredientCommand -> if (ingredient == null) flowOf(
+                IngredientDoesNotExistEvent(
+                    ingredientCommand.identifier,
+                    Error.IngredientDoesNotExist.reason
+                )
+            )
+            else if (IngredientStatus.INITIALIZED != ingredient.status) flowOf(
+                IngredientNotInCorrectStateEvent(
+                    ingredientCommand.identifier,
+                    Error.IngredientNotInCorrectState.reason,
+                    ingredient.status
+                )
+            )
+            else flowOf(IngredientPreparedEvent(ingredientCommand.identifier))
         }
     },
     evolve = { ingredient, ingredientEvent ->
@@ -36,10 +58,12 @@ fun ingredientDecider(): IngredientDecider = Decider(
             )
 
             is IngredientAlreadyExistsEvent -> ingredient
+            is IngredientDoesNotExistEvent -> ingredient
+            is IngredientNotInCorrectStateEvent -> ingredient
+            is IngredientPreparedEvent -> ingredient?.copy(status = ingredientEvent.status ,preparationTimestamps = addIngredientPreparationTimeStamp(ingredient.preparationTimestamps, ingredientEvent.preparationTimeStamp))
         }
     }
 )
-
 
 data class Ingredient(
     val id: IngredientId,
@@ -47,6 +71,16 @@ data class Ingredient(
     val name: IngredientName,
     val quantity: IngredientQuantity,
     val inputTime: IngredientInputTime,
-    val status: IngredientStatus
+    val status: IngredientStatus,
+    val preparationTimestamps: IngredientPreparationList = IngredientPreparationList()
 )
 
+private fun addIngredientPreparationTimeStamp(
+    currentList: IngredientPreparationList,
+    ingredientPreparationTimestamp: IngredientPreparationTimestamp
+): IngredientPreparationList {
+    val newList = currentList.value.toMutableList().apply {
+        add(ingredientPreparationTimestamp)
+    }
+    return IngredientPreparationList(newList.toImmutableList())
+}

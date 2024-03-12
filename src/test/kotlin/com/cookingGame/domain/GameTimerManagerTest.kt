@@ -9,17 +9,23 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 class GameTimerManagerTest {
-    private val gameTimeManager = GameTimerManager
+    private lateinit var gameTimeManager: GameTimerManager
     private val gameId = GameId()
     private val gameName = GameName("Test game")
     private val gameStartTime = GameStartTime()
     private val gameDuration = GameDuration(BigDecimal.valueOf(1))
     private val game =
         Game(gameId, gameName, GameStatus.STARTED, gameDuration = gameDuration, startTime = gameStartTime)
+
+    @BeforeEach
+    fun setUp() {
+        gameTimeManager = GameTimerManager
+    }
 
     @Test
     fun `startTimer should emit GameTimeElapsedEvent`() = runBlocking {

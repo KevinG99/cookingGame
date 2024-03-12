@@ -43,6 +43,9 @@ fun gameSaga(gameClient: GameClient) = GameSaga(
             is IngredientInitializedEvent -> flowOf(UpdateGameIngredientCommand(e.gameId, e.identifier, e.status))
             is GameIngredientUpdatedEvent -> emptyFlow()
             is GameDoesNotContainIngredientEvent -> emptyFlow()
+            is IngredientDoesNotExistEvent -> emptyFlow()
+            is IngredientNotInCorrectStateEvent -> emptyFlow()
+            is IngredientPreparedEvent -> emptyFlow()//TODO
         }
     }
 )

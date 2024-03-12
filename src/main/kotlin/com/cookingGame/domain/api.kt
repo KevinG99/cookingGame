@@ -72,6 +72,15 @@ data class IngredientItem(
 @JvmInline
 value class IngredientList(@Serializable(with = ImmutableListSerializer::class) val value: ImmutableList<IngredientItem> = emptyList<IngredientItem>().toImmutableList())
 
+
+@Serializable
+@JvmInline
+value class IngredientPreparationTimestamp(@Serializable(with = InstantIso8601Serializer::class) val value: Instant = Clock.System.now())
+
+@Serializable
+@JvmInline
+value class IngredientPreparationList(@Serializable(with = ImmutableListSerializer::class) val value: ImmutableList<IngredientPreparationTimestamp> = emptyList<IngredientPreparationTimestamp>().toImmutableList())
+
 @Serializable
 enum class IngredientStatus {
     INITIALIZED, PREPARED, ADDED

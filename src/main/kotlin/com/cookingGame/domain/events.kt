@@ -143,3 +143,27 @@ data class GameIngredientUpdatedEvent(
     val ingredientStatus: IngredientStatus,
     override val final: Boolean = false
 ) : GameEvent()
+
+@Serializable
+data class IngredientPreparedEvent(
+    override val identifier: IngredientId,
+    override val final: Boolean = false,
+) : IngredientEvent(){
+    val preparationTimeStamp = IngredientPreparationTimestamp()
+    val status = IngredientStatus.PREPARED
+}
+
+@Serializable
+data class IngredientDoesNotExistEvent(
+    override val identifier: IngredientId,
+    override val reason: Reason,
+    override val final: Boolean = false
+) : IngredientErrorEvent()
+
+@Serializable
+data class IngredientNotInCorrectStateEvent(
+    override val identifier: IngredientId,
+    override val reason: Reason,
+    val status : IngredientStatus,
+    override val final: Boolean = false
+) : IngredientErrorEvent()

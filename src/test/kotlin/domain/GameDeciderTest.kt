@@ -2,8 +2,11 @@ package domain
 
 import com.cookingGame.domain.*
 import givenEvents
+import io.mockk.mockkObject
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import thenEvents
 import whenCommand
@@ -30,6 +33,11 @@ class GameDeciderTest {
     private val gameIsSuccess = Success(true)
     private val gameIsNotSuccess = Success(false)
     private val gameScore = GameScore(100)
+
+    @BeforeEach
+    fun setUp() {
+        mockkObject(GameTimerManager)
+    }
 
     @Test
     fun testCreateGame(): Unit = runTest {
@@ -136,7 +144,7 @@ class GameDeciderTest {
     }
 
     @Test
-    fun testStartGameTimer(): Unit = runTest {
+    fun testStartGameTimer(): Unit = runBlocking {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)

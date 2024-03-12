@@ -20,7 +20,7 @@ class IngredientDeciderTest {
 
 
     @Test
-    fun `should create ingredient`() = runTest{
+    fun `should create ingredient`() = runTest {
         val initalizeIngredientCommand = InitalizeIngredientCommand(
             ingredientId,
             gameId,
@@ -43,7 +43,7 @@ class IngredientDeciderTest {
     }
 
     @Test
-    fun `should not create ingredient if already exists`() = runTest{
+    fun `should not create ingredient if already exists`() = runTest {
         val initalizeIngredientCommand = InitalizeIngredientCommand(
             ingredientId,
             gameId,
@@ -58,10 +58,72 @@ class IngredientDeciderTest {
             quantity,
             inputTime
         )
+        val ingredientAlreadyExistsEvent = IngredientAlreadyExistsEvent(
+            ingredientId,
+            Error.IngredientAlreadyExists.reason,
+            true
+        )
         with(ingredientDecider) {
             givenEvents(listOf(ingredientInitializedEvent)) {
                 whenCommand(initalizeIngredientCommand)
-            } thenEvents listOf(IngredientAlreadyExistsEvent(ingredientId, Error.IngredientAlreadyExists.reason))
+            } thenEvents listOf(ingredientAlreadyExistsEvent)
+        }
+    }
+
+    @Test
+    fun `should prepare ingredient`() = runTest {
+        val prepareIngredientCommand = PrepareIngredientCommand(
+            ingredientId
+        )
+        val ingredientInitializedEvent = IngredientInitializedEvent(
+            ingredientId,
+            gameId,
+            ingredientName,
+            quantity,
+            inputTime
+        )
+        val ingredientPreparedEvent = IngredientPreparedEvent(ingredientId)
+        with(ingredientDecider) {
+            givenEvents(listOf(ingredientInitializedEvent)) {
+                whenCommand(prepareIngredientCommand)
+            } thenEvents listOf(ingredientPreparedEvent)
+        }
+    }
+
+    @Test
+    fun `should not prepare ingredient if not in correct state`() = runTest {
+        val prepareIngredientCommand = PrepareIngredientCommand(
+            ingredientId
+        )
+        val initializedIngredient = IngredientInitializedEvent(
+            ingredientId,
+            gameId,
+            ingredientName,
+            quantity,
+            inputTime
+        )
+        val ingredientPreparedEvent = IngredientPreparedEvent(ingredientId)
+        val ingredientNotInCorrectStateEvent = IngredientNotInCorrectStateEvent(
+            ingredientId,
+            Error.IngredientNotInCorrectState.reason,
+            IngredientStatus.PREPARED
+        )
+        with(ingredientDecider) {
+            givenEvents(listOf(initializedIngredient, ingredientPreparedEvent)) {
+                whenCommand(prepareIngredientCommand)
+            } thenEvents listOf(ingredientNotInCorrectStateEvent)
+        }
+    }
+
+    @Test
+    fun `should not prepare ingredient if does not exist`() = runTest {
+        val prepareIngredientCommand = PrepareIngredientCommand(
+            ingredientId
+        )
+        with(ingredientDecider) {
+            givenEvents(emptyList()) {
+                whenCommand(prepareIngredientCommand)
+            } thenEvents listOf(IngredientDoesNotExistEvent(ingredientId, Error.IngredientDoesNotExist.reason))
         }
     }
 }
