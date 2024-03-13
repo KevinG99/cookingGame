@@ -10,7 +10,10 @@ import io.r2dbc.spi.Row
 import io.r2dbc.spi.RowMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -77,7 +80,7 @@ class IngredientRepository(private val connectionFactory: ConnectionFactory) {
         else null
     }
 
-    suspend fun findAllByGameId(gameId: String) = withContext(dbDispatcher) {
+    suspend fun findAllByGameId(gameId: String) = flow {
         connectionFactory.connection()
             .executeSql(
                 """
@@ -87,8 +90,8 @@ class IngredientRepository(private val connectionFactory: ConnectionFactory) {
             ) {
                 bind(0, gameId)
             }
-            .toList()
-    }
+            .also { emitAll(it) }
+    }.flowOn(dbDispatcher)
 
     suspend fun findById(id: String) = withContext(dbDispatcher) {
         connectionFactory.connection()
