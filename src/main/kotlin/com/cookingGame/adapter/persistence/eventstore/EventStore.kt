@@ -239,15 +239,65 @@ internal class EventStore(private val connectionFactory: ConnectionFactory) {
         private const val DATA =
             """
                 INSERT INTO deciders
-                VALUES ('Game', 'com.cookingGame.domain.GameCreatedEvent');
-                
-                INSERT INTO deciders
-                VALUES ('Game', 'com.cookingGame.domain.GamePreparedEvent');
-                
-                INSERT INTO deciders
-                VALUES ('Game', 'com.cookingGame.domain.GameStartedEvent');
-                
-               
+VALUES ('Game', 'com.cookingGame.domain.GameCreatedEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.GamePreparedEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.GameStartedEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.GameTimeElapsedEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.GameEndedEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.GameCompletedEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.GameDoesNotExistEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.GameAlreadyExistsEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.GameNotInCorrectState');
+
+INSERT INTO deciders
+VALUES ('Ingredient', 'com.cookingGame.domain.IngredientInitializedEvent');
+
+INSERT INTO deciders
+VALUES ('Ingredient', 'com.cookingGame.domain.IngredientAlreadyExistsEvent');
+
+INSERT INTO deciders
+VALUES ('Ingredient', 'com.cookingGame.domain.GameDoesNotContainIngredientEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.GameIngredientUpdatedEvent');
+
+INSERT INTO deciders
+VALUES ('Ingredient', 'com.cookingGame.domain.IngredientPreparedEvent');
+
+INSERT INTO deciders
+VALUES ('Ingredient', 'com.cookingGame.domain.IngredientDoesNotExistEvent');
+
+INSERT INTO deciders
+VALUES ('Ingredient', 'com.cookingGame.domain.IngredientNotInCorrectStateEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.IngredientPreparationCompletedEvent');
+
+INSERT INTO deciders
+VALUES ('Ingredient', 'com.cookingGame.domain.IngredientAddedEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.GameIngredientAdditionCompletedEvent');
+
+INSERT INTO deciders
+VALUES ('Game', 'com.cookingGame.domain.ScoreCalculatedEvent');
+
             """
     }
 

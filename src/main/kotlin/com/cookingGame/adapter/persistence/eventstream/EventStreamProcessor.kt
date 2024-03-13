@@ -600,7 +600,7 @@ internal class EventStreamProcessor(private val connectionFactory: ConnectionFac
     private fun poolEvents(view: String, poolingDelayMilliseconds: Long): Flow<Pair<Event, Long>> =
         flow {
             while (currentCoroutineContext().isActive) {
-                LOGGER.info("# stream loop #: pulling the db for the view $view")
+                LOGGER.debug("# stream loop #: pulling the db for the view $view")
                 val event = getEvent(view)
                 if (event != null) {
                     LOGGER.debug("# stream loop #: emitting the event {}", event)
