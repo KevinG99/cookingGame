@@ -28,8 +28,6 @@ data class PrepareGameCommand(
 @Serializable
 data class StartGameCommand(
     override val identifier: GameId,
-    val ingredients: IngredientList,
-    val gameDuration: GameDuration,
 ) : GameCommand()
 
 

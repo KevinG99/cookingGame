@@ -109,8 +109,8 @@ class GameDeciderTest {
     fun testStartGame(): Unit = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
-        val startGameCommand = StartGameCommand(gameId, ingredientList, gameDuration)
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val startGameCommand = StartGameCommand(gameId)
+        val gameStartedEvent = GameStartedEvent(gameId)
         with(gameDecider) {
             givenEvents(listOf(gameCreatedEvent, gamePreparedEvent)) { // PRE CONDITIONS
                 whenCommand(startGameCommand) // ACTION
@@ -120,7 +120,7 @@ class GameDeciderTest {
 
     @Test
     fun testStartGame_Does_Not_Exist_Error(): Unit = runTest {
-        val startGameCommand = StartGameCommand(gameId, ingredientList, gameDuration)
+        val startGameCommand = StartGameCommand(gameId)
         val gameDoesNotExistEvent = GameDoesNotExistEvent(gameId, Error.GameDoesNotExist.reason, true)
         with(gameDecider) {
             givenEvents(emptyList()) { // PRE CONDITIONS
@@ -132,8 +132,8 @@ class GameDeciderTest {
     @Test
     fun testStartGame_Not_IN_PREPARED_STATE_ERROR(): Unit = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
-        val startGameCommand = StartGameCommand(gameId, ingredientList, gameDuration)
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val startGameCommand = StartGameCommand(gameId)
+        val gameStartedEvent = GameStartedEvent(gameId)
         val gameNotInPreparedStateEvent =
             GameNotInCorrectState(gameId, Error.GameNotInCorrectState.reason, GameStatus.STARTED, true)
         with(gameDecider) {
@@ -147,7 +147,7 @@ class GameDeciderTest {
     fun testStartGameTimer(): Unit = runBlocking {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameStartedEvent = GameStartedEvent(gameId)
         val startGameTimerCommand = StartGameTimerCommand(gameId)
         val gameTimeElapsedEvent = GameTimeElapsedEvent(gameId)
         with(gameDecider) {
@@ -186,7 +186,7 @@ class GameDeciderTest {
     fun testCompleteGame_WHEN_TimeElapsed(): Unit = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameStartedEvent = GameStartedEvent(gameId)
         val gameTimeElapsedEvent = GameTimeElapsedEvent(gameId)
         val completeGameCommand = CompleteGameCommand(gameId)
         val gameCompletedEvent = GameCompletedEvent(gameId, gameIsNotSuccess)
@@ -233,7 +233,7 @@ class GameDeciderTest {
     fun testCompleteGame_WHEN_GameEnded(): Unit = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameStartedEvent = GameStartedEvent(gameId)
         val gameEndedEvent = GameEndedEvent(gameId)
         val completeGameCommand = CompleteGameCommand(gameId)
         val gameCompletedEvent = GameCompletedEvent(gameId, gameIsSuccess)
@@ -255,7 +255,7 @@ class GameDeciderTest {
     fun testEndGame() = runTest{
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameStartedEvent = GameStartedEvent(gameId)
         val gameEndedEvent = GameEndedEvent(gameId)
         val endGameCommand = EndGameCommand(gameId)
         with(gameDecider){
@@ -352,7 +352,7 @@ class GameDeciderTest {
     fun `should complete ingredient preparation`() = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameStartedEvent = GameStartedEvent(gameId)
         val completeIngredientPreparationCommand = CompleteIngredientPreparationCommand(gameId, ingredientList.value.first().id)
         val ingredientPreparationCompletedEvent = IngredientPreparationCompletedEvent(gameId, ingredientList.value.first().id)
         with(gameDecider) {
@@ -390,7 +390,7 @@ class GameDeciderTest {
         val newIngredientId = IngredientId()
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameStartedEvent = GameStartedEvent(gameId)
         val completeIngredientPreparationCommand = CompleteIngredientPreparationCommand(gameId, newIngredientId)
         val gameDoesNotContainIngredientEvent = GameDoesNotContainIngredientEvent(gameId, newIngredientId, Error.GameDoesNotHaveIngredient.reason, true)
         with(gameDecider) {
@@ -404,7 +404,7 @@ class GameDeciderTest {
     fun `should add ingredient to game`() = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameStartedEvent = GameStartedEvent(gameId)
         val addIngredientToGameCommand = AddIngredientToGameCommand(gameId, ingredientList.value.first().id)
         val gameIngredientAdditionCompletedEvent = GameIngredientAdditionCompletedEvent(gameId, ingredientList.value.first().id)
         with(gameDecider) {
@@ -442,7 +442,7 @@ class GameDeciderTest {
         val newIngredientId = IngredientId()
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameStartedEvent = GameStartedEvent(gameId)
         val addIngredientToGameCommand = AddIngredientToGameCommand(gameId, newIngredientId)
         val gameDoesNotContainIngredientEvent = GameDoesNotContainIngredientEvent(gameId, newIngredientId, Error.GameDoesNotHaveIngredient.reason, true)
         with(gameDecider) {
@@ -456,7 +456,7 @@ class GameDeciderTest {
     fun `should calculate score`() = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameStartedEvent = GameStartedEvent(gameId)
         val gameEndedEvent = GameEndedEvent(gameId)
         val calculateScoreCommand = CalculateScoreCommand(gameId, scoreCalculationInput)
         val scoreCalculatedEvent = ScoreCalculatedEvent(gameId, scoreCalculationInput)

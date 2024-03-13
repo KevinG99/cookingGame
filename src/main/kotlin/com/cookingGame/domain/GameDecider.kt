@@ -61,8 +61,7 @@ fun gameDecider() = GameDecider(
                 )
                 else flowOf(
                     GameStartedEvent(
-                        gameCommand.identifier,
-                        gameCommand.ingredients
+                        gameCommand.identifier
                     )
                 )
 

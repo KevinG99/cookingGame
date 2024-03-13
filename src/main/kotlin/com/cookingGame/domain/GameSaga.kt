@@ -5,10 +5,7 @@ import com.cookingGame.adapter.persistence.GameRepository
 import com.cookingGame.adapter.persistence.IngredientRepository
 import com.fraktalio.fmodel.domain.Saga
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapConcat
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.*
 
 /**
  * A convenient type alias for Saga<GameEvent?, GameCommand>
@@ -33,9 +30,9 @@ fun gameSaga(gameClient: GameClient, ingredientRepository: IngredientRepository,
                     flowOf(PrepareGameCommand(e.identifier, ollamaResponse.ingredientList, ollamaResponse.gameDuration))
                 }
 
-                is GamePreparedEvent -> //foreach ingredients
-                    e.ingredients.value.map { ingredient ->
-                        flowOf(
+                is GamePreparedEvent -> flow {
+                    e.ingredients.value.forEach { ingredient ->
+                        val commandFlow = flowOf(
                             InitalizeIngredientCommand(
                                 ingredient.id,
                                 e.identifier,
@@ -44,14 +41,17 @@ fun gameSaga(gameClient: GameClient, ingredientRepository: IngredientRepository,
                                 ingredient.inputTime
                             )
                         )
-                    }.reduce { acc, flow -> acc.flatMapConcat { flow } }
+                        emitAll(commandFlow)
+                    }
+                }
 
                 is GameStartedEvent -> flowOf(StartGameTimerCommand(e.identifier))
                 is GameTimeElapsedEvent -> emptyFlow()
                 is GameEndedEvent -> flow {
                     val ingredientViewStates = ingredientRepository.findAllByGameId(e.identifier.value.toString())
-                    emit(CalculateScoreCommand(e.identifier, ScoreCalculationInput(ingredientViewStates)))
+                    emit(CalculateScoreCommand(e.identifier, ScoreCalculationInput(ingredientViewStates.toList())))
                 }
+
                 is GameCompletedEvent -> emptyFlow()
                 is GameAlreadyExistsEvent -> emptyFlow()
                 is GameDoesNotExistEvent -> emptyFlow()

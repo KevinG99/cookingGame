@@ -84,7 +84,7 @@ class GameSagaTest {
 
     @Test
     fun testStartGameTimerCommand() = runTest {
-        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameStartedEvent = GameStartedEvent(gameId)
         val startGameTimerCommand = StartGameTimerCommand(gameId)
         with(gameSaga) {
             whenActionResult(
@@ -95,6 +95,41 @@ class GameSagaTest {
 
     @Test
     fun `should initialize ingredient`() = runTest {
+        val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
+        val initalizeIngredientCommands = ingredientList.value.map { (id, name, quantity, inputTime) ->
+            InitalizeIngredientCommand(
+                id,
+                gameId,
+                name,
+                quantity,
+                inputTime
+            )
+        }
+        with(gameSaga) {
+            whenActionResult(
+                gamePreparedEvent
+            ) expectActions initalizeIngredientCommands
+        }
+    }
+
+    @Test
+    fun `should initialize multiple ingredients`() = runTest {
+        val ingredientList = IngredientList(
+            listOf(
+                IngredientItem(
+                    IngredientId(),
+                    IngredientName("Test ingredient 1"),
+                    IngredientQuantity(5),
+                    IngredientInputTime(BigDecimal.TEN)
+                ),
+                IngredientItem(
+                    IngredientId(),
+                    IngredientName("Test ingredient 2"),
+                    IngredientQuantity(5),
+                    IngredientInputTime(BigDecimal.TEN)
+                )
+            ).toImmutableList()
+        )
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val initalizeIngredientCommands = ingredientList.value.map { (id, name, quantity, inputTime) ->
             InitalizeIngredientCommand(
@@ -212,9 +247,9 @@ class GameSagaTest {
     @Test
     fun `should calculate score command`() = runTest {
         val gameEndedEvent = GameEndedEvent(gameId)
-        val ingredientViewStates = listOf(preparedIngredientViewState)
-        coEvery { mockIngredientRepository.findAllByGameId(gameId.value.toString()) } returns ingredientViewStates
-        val scoreCalculationCommand = CalculateScoreCommand(gameId, ScoreCalculationInput(ingredientViewStates))
+        val ingredientViewStates = preparedIngredientViewState
+        coEvery { mockIngredientRepository.findAllByGameId(gameId.value.toString()) } returns flowOf(ingredientViewStates)
+        val scoreCalculationCommand = CalculateScoreCommand(gameId, ScoreCalculationInput(listOf(ingredientViewStates)))
         with(gameSaga) {
             whenActionResult(
                 gameEndedEvent

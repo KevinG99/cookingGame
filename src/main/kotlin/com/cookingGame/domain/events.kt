@@ -41,7 +41,6 @@ data class GamePreparedEvent(
 @Serializable
 data class GameStartedEvent(
     override val identifier: GameId,
-    val ingredients: IngredientList,
     override val final: Boolean = false
 ) : GameEvent() {
     val status = GameStatus.STARTED
