@@ -105,13 +105,14 @@ class IngredientDeciderTest {
             inputTime
         )
         val ingredientPreparedEvent = IngredientPreparedEvent(ingredientId)
+        val ingredientAddedEvent = IngredientAddedEvent(ingredientId)
         val ingredientNotInCorrectStateEvent = IngredientNotInCorrectStateEvent(
             ingredientId,
             Error.IngredientNotInCorrectState.reason,
-            IngredientStatus.PREPARED
+            IngredientStatus.ADDED
         )
         with(ingredientDecider) {
-            givenEvents(listOf(initializedIngredient, ingredientPreparedEvent)) {
+            givenEvents(listOf(initializedIngredient, ingredientPreparedEvent, ingredientAddedEvent)) {
                 whenCommand(prepareIngredientCommand)
             } thenEvents listOf(ingredientNotInCorrectStateEvent)
         }
@@ -173,7 +174,7 @@ class IngredientDeciderTest {
         val addIngredientCommand = AddIngredientCommand(
             ingredientId
         )
-        val ingredietInitializedEvent = IngredientInitializedEvent(
+        val ingredientInitializedEvent = IngredientInitializedEvent(
             ingredientId,
             gameId,
             ingredientName,
@@ -186,7 +187,7 @@ class IngredientDeciderTest {
             IngredientStatus.INITIALIZED
         )
         with(ingredientDecider) {
-            givenEvents(listOf(ingredietInitializedEvent)) {
+            givenEvents(listOf(ingredientInitializedEvent)) {
                 whenCommand(addIngredientCommand)
             } thenEvents listOf(ingredientNotInCorrectStateEvent)
         }

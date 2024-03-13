@@ -35,7 +35,7 @@ fun ingredientDecider(): IngredientDecider = Decider(
                     Error.IngredientDoesNotExist.reason
                 )
             )
-            else if (IngredientStatus.INITIALIZED != ingredient.status) flowOf(
+            else if (IngredientStatus.INITIALIZED != ingredient.status && IngredientStatus.PREPARED != ingredient.status) flowOf(
                 IngredientNotInCorrectStateEvent(
                     ingredientCommand.identifier,
                     Error.IngredientNotInCorrectState.reason,
