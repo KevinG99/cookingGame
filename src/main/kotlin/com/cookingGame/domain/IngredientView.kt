@@ -2,6 +2,7 @@ package com.cookingGame.domain
 
 import com.fraktalio.fmodel.domain.View
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.serialization.Serializable
 
 typealias IngredientView = View<IngredientViewState?, IngredientEvent?>
 
@@ -26,6 +27,7 @@ fun ingredientView() = IngredientView(
         }
     }
 )
+@Serializable
 data class IngredientViewState(
     val id: IngredientId,
     val gameId: GameId,

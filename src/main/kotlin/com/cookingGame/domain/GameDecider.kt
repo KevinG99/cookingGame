@@ -134,12 +134,14 @@ fun gameDecider() = GameDecider(
                         true
                     )
                 )
-                else flowOf(
-                    GameEndedEvent(
-                        gameCommand.identifier,
-                        gameCommand.score
+                else {
+                    GameTimerManager.stopTimer(gameCommand.identifier) //TODO: This should be done in the GameTimerManager
+                    flowOf(
+                        GameEndedEvent(
+                            gameCommand.identifier
+                        )
                     )
-                )
+                }
             }
 
             is UpdateGameIngredientCommand -> if (game == null) flowOf(
@@ -233,14 +235,14 @@ fun gameDecider() = GameDecider(
                 )
             )
 
-            is StopGameCommand -> if (game == null) flowOf(
+            is CalculateScoreCommand -> if (game == null) flowOf(
                 GameDoesNotExistEvent(
                     gameCommand.identifier,
                     Error.GameDoesNotExist.reason,
                     true
                 )
             )
-            else if (GameStatus.STARTED != game.status) flowOf(
+            else if (GameStatus.GAME_ENDED != game.status) flowOf(
                 GameNotInCorrectState(
                     gameCommand.identifier,
                     Error.GameNotInCorrectState.reason,
@@ -248,10 +250,8 @@ fun gameDecider() = GameDecider(
                     true
                 )
             )
-            else {
-                GameTimerManager.stopTimer(gameCommand.identifier)
-                flowOf(GameStoppedEvent(gameCommand.identifier))
-            }
+            else flowOf(ScoreCalculatedEvent(gameCommand.identifier, gameCommand.scoreCalculationInput))
+
         }
     },
     evolve = { game, gameEvent ->
@@ -275,7 +275,6 @@ fun gameDecider() = GameDecider(
 
             is GameEndedEvent -> game?.copy(
                 status = gameEvent.status,
-                score = gameEvent.score,
                 completionTime = gameEvent.completionTime
             )
 
@@ -330,7 +329,7 @@ fun gameDecider() = GameDecider(
                 }
             }
 
-            is GameStoppedEvent -> game
+            is ScoreCalculatedEvent -> game?.copy(score = gameEvent.score)
         }
     }
 )

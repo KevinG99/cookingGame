@@ -48,7 +48,10 @@ fun gameSaga(gameClient: GameClient, ingredientRepository: IngredientRepository,
 
                 is GameStartedEvent -> flowOf(StartGameTimerCommand(e.identifier))
                 is GameTimeElapsedEvent -> emptyFlow()
-                is GameEndedEvent -> emptyFlow()
+                is GameEndedEvent -> flow {
+                    val ingredientViewStates = ingredientRepository.findAllByGameId(e.identifier.value.toString())
+                    emit(CalculateScoreCommand(e.identifier, ScoreCalculationInput(ingredientViewStates)))
+                }
                 is GameCompletedEvent -> emptyFlow()
                 is GameAlreadyExistsEvent -> emptyFlow()
                 is GameDoesNotExistEvent -> emptyFlow()
@@ -80,11 +83,11 @@ fun gameSaga(gameClient: GameClient, ingredientRepository: IngredientRepository,
                 is GameIngredientAdditionCompletedEvent -> flow {
                     val gameViewState = gameRepository.findById(e.identifier.value.toString()) ?: return@flow
                     if (gameViewState.ingredients?.value?.all { it.status == IngredientStatus.ADDED } == true) {
-                        emit(StopGameCommand(e.identifier))
+                        emit(EndGameCommand(e.identifier))
                     }
                 }
 
-                is GameStoppedEvent -> emptyFlow()
+                is ScoreCalculatedEvent -> emptyFlow()
             }
         }
     )

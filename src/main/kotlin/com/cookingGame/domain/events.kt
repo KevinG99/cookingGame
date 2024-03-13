@@ -1,5 +1,6 @@
 package com.cookingGame.domain
 
+import com.cookingGame.application.calculateScore
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -32,7 +33,7 @@ data class GamePreparedEvent(
     val ingredients: IngredientList,
     val gameDuration: GameDuration,
     override val final: Boolean = false
-) : GameEvent(){
+) : GameEvent() {
     val status = GameStatus.PREPARED
 }
 
@@ -40,27 +41,26 @@ data class GamePreparedEvent(
 @Serializable
 data class GameStartedEvent(
     override val identifier: GameId,
-    val ingredients : IngredientList,
+    val ingredients: IngredientList,
     override val final: Boolean = false
-) : GameEvent(){
+) : GameEvent() {
     val status = GameStatus.STARTED
-    val startTime : GameStartTime = GameStartTime()
+    val startTime: GameStartTime = GameStartTime()
 }
 
 @Serializable
 data class GameTimeElapsedEvent(
     override val identifier: GameId,
     override val final: Boolean = false
-) : GameEvent(){
+) : GameEvent() {
     val status = GameStatus.GAME_OVER
 }
 
 @Serializable
 data class GameEndedEvent(
     override val identifier: GameId,
-    val score : GameScore,
     override val final: Boolean = false
-) : GameEvent(){
+) : GameEvent() {
     val status = GameStatus.GAME_ENDED
     val completionTime = GameCompletionTime()
 }
@@ -70,7 +70,7 @@ data class GameCompletedEvent(
     override val identifier: GameId,
     val isSuccess: Success,
     override val final: Boolean = true
-) : GameEvent(){
+) : GameEvent() {
     val status = GameStatus.COMPLETED
 }
 
@@ -93,7 +93,7 @@ data class GameAlreadyExistsEvent(
 data class GameNotInCorrectState(
     override val identifier: GameId,
     override val reason: Reason,
-    val status : GameStatus,
+    val status: GameStatus,
     override val final: Boolean = false
 ) : GameErrorEvent()
 
@@ -117,7 +117,7 @@ data class IngredientInitializedEvent(
     val ingredientQuantity: IngredientQuantity,
     val inputTime: IngredientInputTime,
     override val final: Boolean = false
-) : IngredientEvent(){
+) : IngredientEvent() {
     val status = IngredientStatus.INITIALIZED
 }
 
@@ -148,7 +148,7 @@ data class GameIngredientUpdatedEvent(
 data class IngredientPreparedEvent(
     override val identifier: IngredientId,
     override val final: Boolean = false,
-) : IngredientEvent(){
+) : IngredientEvent() {
     val preparationTimeStamp = IngredientPreparationTimestamp()
     val status = IngredientStatus.PREPARED
 }
@@ -164,7 +164,7 @@ data class IngredientDoesNotExistEvent(
 data class IngredientNotInCorrectStateEvent(
     override val identifier: IngredientId,
     override val reason: Reason,
-    val status : IngredientStatus,
+    val status: IngredientStatus,
     override val final: Boolean = false
 ) : IngredientErrorEvent()
 
@@ -173,16 +173,16 @@ data class IngredientPreparationCompletedEvent(
     override val identifier: GameId,
     val ingredientId: IngredientId,
     override val final: Boolean = false
-) : GameEvent(){
+) : GameEvent() {
     val ingredientStatus = IngredientStatus.PREPARED
-    val preparationCompleteTime : IngredientPreparationTimestamp = IngredientPreparationTimestamp()
+    val preparationCompleteTime: IngredientPreparationTimestamp = IngredientPreparationTimestamp()
 }
 
 @Serializable
 data class IngredientAddedEvent(
     override val identifier: IngredientId,
     override val final: Boolean = false
-) : IngredientEvent(){
+) : IngredientEvent() {
     val status = IngredientStatus.ADDED
     val addedTimestamp = IngredientAddedTimestamp()
 }
@@ -192,15 +192,16 @@ data class GameIngredientAdditionCompletedEvent(
     override val identifier: GameId,
     val ingredientId: IngredientId,
     override val final: Boolean = false
-) : GameEvent(){
+) : GameEvent() {
     val ingredientStatus = IngredientStatus.ADDED
     val additionCompletedTimestamp = IngredientAddedTimestamp()
 }
 
 @Serializable
-data class GameStoppedEvent(
+data class ScoreCalculatedEvent(
     override val identifier: GameId,
+    val scoreCalculationInput: ScoreCalculationInput,
     override val final: Boolean = false
-) : GameEvent(){
-    val status = GameStatus.STOPPED
+) : GameEvent() {
+    val score = GameScore(scoreCalculationInput.calculateScore())
 }

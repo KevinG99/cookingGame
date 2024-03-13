@@ -201,11 +201,24 @@ class GameSagaTest {
         )
         coEvery { mockGameRepository.findById(gameId.value.toString()) } returns newGameViewState
         val gameIngredientAdditionCompletedEvent = GameIngredientAdditionCompletedEvent(gameId, ingredientId)
-        val stopGameCommand = StopGameCommand(gameId)
+        val endGameCommand = EndGameCommand(gameId)
         with(gameSaga) {
             whenActionResult(
                 gameIngredientAdditionCompletedEvent
-            ) expectActions listOf(stopGameCommand)
+            ) expectActions listOf(endGameCommand)
+        }
+    }
+
+    @Test
+    fun `should calculate score command`() = runTest {
+        val gameEndedEvent = GameEndedEvent(gameId)
+        val ingredientViewStates = listOf(preparedIngredientViewState)
+        coEvery { mockIngredientRepository.findAllByGameId(gameId.value.toString()) } returns ingredientViewStates
+        val scoreCalculationCommand = CalculateScoreCommand(gameId, ScoreCalculationInput(ingredientViewStates))
+        with(gameSaga) {
+            whenActionResult(
+                gameEndedEvent
+            ) expectActions listOf(scoreCalculationCommand)
         }
     }
 }

@@ -82,7 +82,10 @@ value class IngredientPreparationTimestamp(@Serializable(with = InstantIso8601Se
 @JvmInline
 value class IngredientAddedTimestamp(@Serializable(with = InstantIso8601Serializer::class) val value: Instant = Clock.System.now())
 
-
+@Serializable
+data class ScoreCalculationInput(
+    val ingredients: List<IngredientViewState>
+)
 
 @Serializable
 @JvmInline
@@ -114,7 +117,7 @@ value class GameName(val value: String)
 
 @Serializable
 enum class GameStatus {
-    CREATED, PREPARED, STARTED, STOPPED, GAME_ENDED,GAME_OVER, COMPLETED
+    CREATED, PREPARED, STARTED, GAME_ENDED,GAME_OVER, COMPLETED
 }
 
 @Serializable

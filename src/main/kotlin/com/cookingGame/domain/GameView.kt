@@ -27,7 +27,6 @@ fun gameView() = GameView(
             is GameTimeElapsedEvent -> gameViewState?.copy(status = gameEvent.status)
             is GameEndedEvent -> gameViewState?.copy(
                 status = gameEvent.status,
-                score = gameEvent.score,
                 completionTime = gameEvent.completionTime
             )
 
@@ -76,7 +75,7 @@ fun gameView() = GameView(
                 )
             }
 
-            is GameStoppedEvent -> gameViewState?.copy(status = gameEvent.status)
+            is ScoreCalculatedEvent -> gameViewState?.copy(score = gameEvent.score)
         }
     }
 )

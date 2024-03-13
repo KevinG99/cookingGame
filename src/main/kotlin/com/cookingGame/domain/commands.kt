@@ -41,8 +41,6 @@ data class StartGameTimerCommand(
 @Serializable
 data class EndGameCommand(
     override val identifier: GameId,
-    val score : GameScore,
-    val completionTime: GameCompletionTime,
 ) : GameCommand()
 
 @Serializable
@@ -94,6 +92,7 @@ data class AddIngredientToGameCommand(
 ) : GameCommand()
 
 @Serializable
-data class StopGameCommand(
+data class CalculateScoreCommand(
     override val identifier: GameId,
+    val scoreCalculationInput: ScoreCalculationInput
 ) : GameCommand()

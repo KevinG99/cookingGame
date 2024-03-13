@@ -123,7 +123,7 @@ class GameViewTest {
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
         val gameTimeElapsedEvent = GameTimeElapsedEvent(gameId)
-        val gameEndedEvent = GameEndedEvent(gameId, gameScore)
+        val gameEndedEvent = GameEndedEvent(gameId)
         val gameViewState = GameViewState(
             gameId,
             gameName,
@@ -131,7 +131,6 @@ class GameViewTest {
             ingredientList,
             gameDuration,
             gameStartedEvent.startTime,
-            score = gameEndedEvent.score,
             completionTime = gameEndedEvent.completionTime
         )
         with(gameView) {
@@ -218,5 +217,28 @@ class GameViewTest {
                     )
                 ) thenState gameViewState
             }
+    }
+
+    @Test
+    fun `should calculate score`(): Unit = runTest {
+        val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
+        val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
+        val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
+        val gameTimeElapsedEvent = GameTimeElapsedEvent(gameId)
+        val gameEndedEvent = GameEndedEvent(gameId)
+        val gameViewState = GameViewState(
+            gameId,
+            gameName,
+            gameEndedEvent.status,
+            ingredientList,
+            gameDuration,
+            gameStartedEvent.startTime,
+            completionTime = gameEndedEvent.completionTime
+        )
+        with(gameView) {
+            givenEvents(
+                listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent, gameTimeElapsedEvent, gameEndedEvent)
+            ) thenState gameViewState
+        }
     }
 }

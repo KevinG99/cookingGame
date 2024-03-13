@@ -10,10 +10,7 @@ import io.r2dbc.spi.Row
 import io.r2dbc.spi.RowMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -78,6 +75,19 @@ class IngredientRepository(private val connectionFactory: ConnectionFactory) {
                 }
                 .singleOrNull()
         else null
+    }
+
+    suspend fun findAllByGameId(gameId: String) = withContext(dbDispatcher) {
+        connectionFactory.connection()
+            .executeSql(
+                """
+                SELECT * FROM ingredients WHERE ingredient_data ->> 'gameId' = $1
+                """,
+                ingredientMapper
+            ) {
+                bind(0, gameId)
+            }
+            .toList()
     }
 
     suspend fun findById(id: String) = withContext(dbDispatcher) {

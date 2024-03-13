@@ -33,7 +33,7 @@ class GameDeciderTest {
     private val gameIsSuccess = Success(true)
     private val gameIsNotSuccess = Success(false)
     private val gameScore = GameScore(100)
-
+    private val scoreCalculationInput = ScoreCalculationInput(listOf(IngredientViewState(IngredientId(), gameId, IngredientName("Test ingredient 1"), IngredientQuantity(5), IngredientInputTime(BigDecimal.TEN), IngredientStatus.INITIALIZED)))
     @BeforeEach
     fun setUp() {
         mockkObject(GameTimerManager)
@@ -234,7 +234,7 @@ class GameDeciderTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
-        val gameEndedEvent = GameEndedEvent(gameId, gameScore)
+        val gameEndedEvent = GameEndedEvent(gameId)
         val completeGameCommand = CompleteGameCommand(gameId)
         val gameCompletedEvent = GameCompletedEvent(gameId, gameIsSuccess)
         with(gameDecider) {
@@ -256,8 +256,8 @@ class GameDeciderTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
-        val gameEndedEvent = GameEndedEvent(gameId, gameScore)
-        val endGameCommand = EndGameCommand(gameId, gameScore, gameCompletionTime)
+        val gameEndedEvent = GameEndedEvent(gameId)
+        val endGameCommand = EndGameCommand(gameId)
         with(gameDecider){
             givenEvents(
                 listOf(
@@ -275,7 +275,7 @@ class GameDeciderTest {
 
     @Test
     fun testEndGame_Does_Not_Exist_Error() = runTest{
-        val endGameCommand = EndGameCommand(gameId, gameScore, gameCompletionTime)
+        val endGameCommand = EndGameCommand(gameId)
         val gameDoesNotExistEvent = GameDoesNotExistEvent(gameId, Error.GameDoesNotExist.reason, true)
         with(gameDecider){
             givenEvents(emptyList()){
@@ -289,7 +289,7 @@ class GameDeciderTest {
     @Test
     fun testEndGame_Not_IN_STARTED_STATE_ERROR() = runTest{
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
-        val endGameCommand = EndGameCommand(gameId, gameScore, gameCompletionTime)
+        val endGameCommand = EndGameCommand(gameId)
         val gameNotInCorrectStateEvent = GameNotInCorrectState(gameId, Error.GameNotInCorrectState.reason, GameStatus.CREATED, true)
         with(gameDecider){
             givenEvents(listOf(gameCreatedEvent)){
@@ -453,38 +453,39 @@ class GameDeciderTest {
     }
 
     @Test
-    fun `should stop game`() = runTest {
+    fun `should calculate score`() = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
         val gamePreparedEvent = GamePreparedEvent(gameId, ingredientList, gameDuration)
         val gameStartedEvent = GameStartedEvent(gameId, ingredientList)
-        val stopGameCommand = StopGameCommand(gameId)
-        val gameStoppedEvent = GameStoppedEvent(gameId)
+        val gameEndedEvent = GameEndedEvent(gameId)
+        val calculateScoreCommand = CalculateScoreCommand(gameId, scoreCalculationInput)
+        val scoreCalculatedEvent = ScoreCalculatedEvent(gameId, scoreCalculationInput)
         with(gameDecider) {
-            givenEvents(listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent))  {
-                whenCommand(stopGameCommand)
-            } thenEvents listOf(gameStoppedEvent)
+            givenEvents(listOf(gameCreatedEvent, gamePreparedEvent, gameStartedEvent, gameEndedEvent))  {
+                whenCommand(calculateScoreCommand)
+            } thenEvents listOf(scoreCalculatedEvent)
         }
     }
 
     @Test
-    fun `should stop game Game_DoesNotExist`() = runTest {
-        val stopGameCommand = StopGameCommand(gameId)
+    fun `should calculate score Game_DoesNotExist`() = runTest {
+        val calculateScoreCommand = CalculateScoreCommand(gameId, scoreCalculationInput)
         val gameDoesNotExistEvent = GameDoesNotExistEvent(gameId, Error.GameDoesNotExist.reason, true)
         with(gameDecider) {
             givenEvents(emptyList())  {
-                whenCommand(stopGameCommand)
+                whenCommand(calculateScoreCommand)
             } thenEvents listOf(gameDoesNotExistEvent)
         }
     }
 
     @Test
-    fun `should stop game Game_NotInCorrectState`() = runTest {
+    fun `should calculate score Game_NotInCorrectState`() = runTest {
         val gameCreatedEvent = GameCreatedEvent(gameId, gameName)
-        val stopGameCommand = StopGameCommand(gameId)
+        val calculateScoreCommand = CalculateScoreCommand(gameId, scoreCalculationInput)
         val gameNotInCorrectStateEvent = GameNotInCorrectState(gameId, Error.GameNotInCorrectState.reason, GameStatus.CREATED, true)
         with(gameDecider) {
             givenEvents(listOf(gameCreatedEvent))  {
-                whenCommand(stopGameCommand)
+                whenCommand(calculateScoreCommand)
             } thenEvents listOf(gameNotInCorrectStateEvent)
         }
     }
