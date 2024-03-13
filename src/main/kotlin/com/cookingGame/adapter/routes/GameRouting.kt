@@ -31,13 +31,33 @@ fun Application.cookingGameRouting(
                 val resultEvents: List<Event> =
                     aggregate.handleOptimistically(command).map { it.first }.filterNotNull().toList()
 
+                resultEvents.forEach {
+                    LOGGER.info(it.toString())
+                }
                 call.respond(HttpStatusCode.Created, resultEvents)
             } catch (e: Exception) {
                 LOGGER.error("Error: ${e.message}", e)
                 call.respond(HttpStatusCode.BadRequest)
-            }        }
+            }
+        }
         get("/ingredients") {
-            // TODO
+            try {
+                val ingredients = ingredientRepository.findAll().toList()
+                call.respond(ingredients)
+            } catch (e: Exception) {
+                LOGGER.error("Error: ${e.message}", e)
+                call.respond(HttpStatusCode.BadRequest)
+            }
+        }
+        get("/ingredients/{gameId}") {
+            try {
+                val gameId = call.parameters["gameId"] ?: throw IllegalArgumentException("GameId is missing")
+                val ingredients = ingredientRepository.findAllByGameId(gameId).toList()
+                call.respond(ingredients)
+            } catch (e: Exception) {
+                LOGGER.error("Error: ${e.message}", e)
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
         get("ingredient/{id}") {
             try {
