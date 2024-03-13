@@ -1,0 +1,54 @@
+@baseUrl = http://localhost:8080
+@gameId = 9381e35e-0a91-4fe6-711a-2c01b99d32a2
+
+@ingredientId = 2d8094eb-ca7d-45eb-a990-cfa7fd7799c4
+
+### Send POST Command - Create a new Game
+POST {{baseUrl}}/commands
+Content-Type: application/json
+
+{
+  "type": "com.cookingGame.domain.CreateGameCommand",
+  "identifier": "{{gameId}}",
+  "name": "My first live test"
+}
+
+### Send POST Command - Start Game
+POST {{baseUrl}}/commands
+Content-Type: application/json
+
+{
+  "type": "com.cookingGame.domain.StartGameCommand",
+  "identifier": "{{gameId}}"
+}
+
+### Send GET - Get all Ingredients by Game Identifier
+GET {{baseUrl}}/ingredients/{{gameId}}
+
+### Send POST Command - Prepare Ingredient
+POST {{baseUrl}}/commands
+Content-Type: application/json
+
+{
+  "type": "com.cookingGame.domain.PrepareIngredientCommand",
+  "identifier": "{{ingredientId}}"
+}
+
+### Send POST Command - Add Ingredient
+POST {{baseUrl}}/commands
+Content-Type: application/json
+
+{
+  "type": "com.cookingGame.domain.AddIngredientCommand",
+  "identifier": "{{ingredientId}}"
+}
+
+### Send GET - Get all Ingredients
+GET {{baseUrl}}/ingredients
+
+### Send GET - Get all Games
+GET {{baseUrl}}/games
+
+
+### Send GET - Get Game by Identifier
+GET {{baseUrl}}/games/{{gameId}}
